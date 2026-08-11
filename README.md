@@ -1,74 +1,100 @@
-================================================================================
-          HOW TO CONTRIBUTE CODE AND ELEVATE IT TO PRODUCTION
-================================================================================
+# 🛠️ GitHub Contribution & Branching Guide
 
-PREREQUISITES (ONE-TIME SETUP):
---------------------------------------------------------------------------------
-1. Open terminal in your local project folder:
-   cd /path/to/your/project
+This document outlines the standard workflow for contributing code, creating Pull Requests (PRs), and promoting features across our multi-stage branching model (`build` → `pre-production` → `production`).
 
-2. Initialize Git (if not already done):
-   git init
+---
 
-3. Save your GitHub credentials locally so you don't type your password every time:
-   git config --global credential.helper store
+## 📌 Branching Model Overview
 
+```text
+[ Developer Machine ] ──(git push)──>  build  (Level 1: Active Workspace)
+                                         │
+                             (PR + 1 Approval)
+                                         ▼
+                                   pre-production (Level 2: Staging / Testing)
+                                         │
+                             (PR + Admin Only Approval)
+                                         ▼
+                                     production  (Level 3: Live Release)
+```
+build (Default Branch): Open workspace. All ongoing development and feature additions are pushed here.
 
-================================================================================
-LEVEL 1: UPLOADING YOUR WORK (LOCAL MACHINE -> BUILD BRANCH)
-================================================================================
-Use this every time you want to save your progress from your computer to GitHub.
+pre-production: Staging environment. Tested features are merged here via Pull Requests for integration verification.
 
-1. Switch to the main workspace branch:
-   git checkout build
+production: Protected live environment. Restricted branch; only the designated Repository Admin can merge changes here.
 
-2. Download any updates made by teammates before you start working:
-   git pull origin build
+⚙️ Prerequisites (One-Time Setup)
+Perform these steps if you are setting up your workspace for the first time:
 
-3. Stage all your new/edited files:
-   git add .
-
-4. Save your progress locally with a description of what you changed:
-   git commit -m "your description of changes here"
-
-5. Send your code up to GitHub:
-   git push origin build
+Open terminal in your project directory:
 
 
-================================================================================
-LEVEL 2: PROMOTING TO STAGING (BUILD -> PRE-PRODUCTION)
-================================================================================
-Use this when a feature on the build branch is finished and ready for testing.
-
-1. Open your browser and go to your project's GitHub repository page.
-
-2. Click on the "Pull requests" tab near the top, then click the green "New pull request" button.
-
-3. Set the branch dropdowns:
-   - base: pre-production
-   - compare: build
-
-4. Click "Create pull request", write a brief explanation of what is ready for testing, and submit it.
-
-5. Ask a teammate to review it. Once 1 approval is granted, click "Merge pull request".
+```cd /path/to/your/project```
+Initialize local Git repository:
 
 
-================================================================================
-LEVEL 3: GOING LIVE (PRE-PRODUCTION -> PRODUCTION)
-================================================================================
-Use this when pre-production testing is complete and code is ready for release.
+```git init```
+Enable credential caching (avoids re-entering password/PAT on every push):
 
-1. Go to your project's GitHub repository page in your browser.
 
-2. Click "Pull requests" -> "New pull request".
+```git config --global credential.helper store```
+🟢 Level 1: Uploading Work (Local Machine → build)
+Follow these steps to save progress from your local computer to GitHub:
 
-3. Set the branch dropdowns:
-   - base: production
-   - compare: pre-production
+Switch to the build branch:
 
-4. Click "Create pull request" and submit it.
 
-5. Notify the repository owner. Only the designated admin can review and click "Merge pull request" to deploy live.
+```git checkout build```
+Pull the latest remote updates:
+
+
+```git pull origin build```
+Stage all created or modified files:
+
+
+```git add .```
+Commit local changes:
+
+
+```git commit -m "<your_commit_message_here>"```
+Push updates to GitHub:
+
+
+```git push origin build```
+🟡 Level 2: Staging for Review (build → pre-production)
+Follow these steps when feature updates on build are complete and ready for testing:
+
+Open your browser and navigate to the project repository on GitHub.
+
+Click on the Pull requests tab, then click the New pull request button.
+
+Configure the branch targets:
+
+```base: pre-production```
+
+```compare: build```
+
+Click Create pull request, provide a summary of changes, and assign a reviewer.
+
+Once 1 reviewer approval is received, click Merge pull request.
+
+🔴 Level 3: Production Deployment (pre-production → production)
+Follow these steps when staged code in pre-production passes all checks and is ready to go live:
+
+Navigate to the project repository on GitHub.
+
+Click Pull requests → New pull request.
+
+Configure the branch targets:
+
+```base: production```
+
+```compare: pre-production```
+
+Click Create pull request and submit.
+
+Notify the Repository Admin. Only the designated admin has authorization to review, approve, and click Merge pull request.
+
 ## Available Scripts
 
 In the project directory, you can run:
