@@ -1,0 +1,179 @@
+/* ========== FARMER RECORDS PAGE ========== */
+.page-container {
+  padding: 2rem;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.page-head h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+
+.page-head p {
+  margin: 0.4rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+/* ========== FARMER STATS ========== */
+.farmer-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card-mini {
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--neu-shadow-raised);
+  transition: all 0.25s ease;
+}
+
+.stat-card-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--neu-shadow-raised-hover);
+}
+
+.stat-icon-mini {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  color: white;
+  box-shadow: var(--neu-shadow-inset-sm);
+}
+
+.stat-icon-mini.total { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.stat-icon-mini.verified { background: linear-gradient(135deg, #10b981, #059669); }
+.stat-icon-mini.pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-icon-mini.animals { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+.stat-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.stat-value-mini {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* ========== SEARCH & FILTER ========== */
+.search-filter-card {
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid var(--border-light);
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  box-shadow: var(--neu-shadow-raised);
+}
+
+.search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-inset);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9375rem;
+  color: var(--text-main);
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-select {
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-inset);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  outline: none;
+}
+
+/* ========== TABLE ========== */
+.table-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: var(--neu-shadow-raised);
+  padding: 12px;
+}
+
+.farmer-id {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--bg-accent);
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-inset-sm);
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+}
+
+.cell-view-link {
+  margin-top: 0.4rem;
+  padding: 0.35rem 1.1rem;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: -2px -2px 6px rgba(255,255,255,0.4), 2px 2px 8px rgba(5,150,105,0.4);
+}
+
+.cell-view-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Document cards in modal */
+.document-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--neu-shadow-raised-sm);
+}
+
+.document-card:hover {
+  box-shadow: var(--neu-shadow-raised);
+}

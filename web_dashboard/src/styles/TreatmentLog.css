@@ -1,0 +1,208 @@
+/* Treatment Log Page */
+.page {
+  padding: 32px;
+  background: var(--bg-main);
+  min-height: 100vh;
+  color: var(--text-main);
+}
+
+.page-head {
+  margin-bottom: 28px;
+}
+
+.page-head h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.page-head p {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Statistics Cards Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  padding: 22px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--neu-shadow-raised);
+  transition: all 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--neu-shadow-raised-hover);
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--neu-shadow-inset-sm);
+  font-weight: 700;
+}
+
+.stat-active .stat-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.stat-warning .stat-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.stat-completed .stat-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.stat-total .stat-icon {
+  background: rgba(100, 116, 139, 0.15);
+  color: var(--text-muted);
+}
+
+.stat-info h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+/* Search Filter Form Card */
+.form-card {
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: var(--neu-shadow-raised);
+  border: 1px solid var(--border-light);
+  margin-bottom: 24px;
+}
+
+.form-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 20px 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.form-input {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--text-main);
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-inset);
+  outline: none;
+  height: 46px;
+}
+
+.form-input:focus {
+  box-shadow: var(--neu-shadow-inset), 0 0 0 2px rgba(59, 130, 246, 0.4);
+}
+
+.btn-search {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4), 3px 3px 10px rgba(29, 78, 216, 0.4);
+  height: 46px;
+}
+
+.btn-search:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--neu-glow-accent);
+}
+
+.btn-reset {
+  padding: 12px 24px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: var(--neu-shadow-raised-sm);
+  cursor: pointer;
+  height: 46px;
+}
+
+.btn-reset:hover {
+  box-shadow: var(--neu-shadow-raised);
+  color: var(--text-main);
+}
+
+/* Results info */
+.results-info {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.results-info strong {
+  color: var(--bg-accent);
+}
+
+/* Neumorphic Data Table */
+.table-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: var(--neu-shadow-raised);
+  padding: 12px;
+}
+
+.btn-view-details {
+  background: var(--bg-card);
+  color: var(--bg-accent);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--neu-shadow-raised-sm);
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.btn-view-details:hover {
+  box-shadow: var(--neu-shadow-raised);
+  transform: translateY(-1px);
+}

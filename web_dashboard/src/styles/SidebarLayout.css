@@ -1,0 +1,200 @@
+/* Layout Container */
+.layout-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-main);
+}
+
+/* ✅ NEUMORPHIC SIDEBAR CONTROL PANEL */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  padding: 1.25rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-raised);
+  border-right: 1px solid var(--border-light);
+  z-index: 100;
+  overflow-y: auto;
+}
+
+/* Logo Section */
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-main);
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-raised-sm);
+  border: 1px solid var(--border-light);
+}
+
+.logo-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+  color: white;
+  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.2), inset 2px 2px 4px rgba(255,255,255,0.4), 0 4px 10px rgba(16, 185, 129, 0.4);
+  flex-shrink: 0;
+}
+
+.logo-text {
+  flex: 1;
+}
+
+.app-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+.logo-subtitle {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin: 0;
+  margin-top: 0.15rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Navigation Menu */
+.menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Menu Section Grouping */
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Menu Label */
+.menu-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 0.25rem;
+  padding: 0 0.65rem;
+}
+
+/* Menu Items */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: var(--bg-card);
+  color: var(--bg-accent);
+  box-shadow: var(--neu-shadow-raised-sm);
+}
+
+/* Active Menu Item */
+.menu-item.active {
+  background: var(--bg-card) !important;
+  color: var(--bg-accent) !important;
+  font-weight: 700;
+  box-shadow: var(--neu-shadow-inset) !important;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.menu-item svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.menu-item.active svg {
+  transform: scale(1.08);
+}
+
+/* Logout Button */
+.logout-btn {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-card);
+  color: var(--danger);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--neu-shadow-raised-sm);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.logout-btn:hover {
+  box-shadow: var(--neu-shadow-raised), inset 0 0 10px rgba(239, 68, 68, 0.1);
+  transform: translateY(-1px);
+}
+
+.logout-btn:active {
+  box-shadow: var(--neu-shadow-pressed);
+  transform: translateY(0);
+}
+
+/* Main Content Area */
+.content {
+  flex: 1;
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-main);
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+  .content {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+  }
+}

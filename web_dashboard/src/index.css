@@ -1,0 +1,319 @@
+/* --------------------------------------------- */
+/* ✅ NEUMORPHIC GLOBAL DESIGN SYSTEM            */
+/* --------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Core Neumorphic Light Theme (Soft Slate Blue) */
+  --bg-main: #e8eef5;
+  --bg-card: #e8eef5;
+  --bg-accent: #3b82f6;
+  --bg-accent-hover: #2563eb;
+  
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+
+  --border-light: rgba(255, 255, 255, 0.6);
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* Neumorphic Shadow Variables (Light Mode) */
+  --neu-shadow-raised: -8px -8px 16px #ffffff, 8px 8px 16px #c4d0e0;
+  --neu-shadow-raised-sm: -4px -4px 10px #ffffff, 4px 4px 10px #cbd7e6;
+  --neu-shadow-raised-hover: -10px -10px 20px #ffffff, 10px 10px 20px #b8c6d9;
+  --neu-shadow-inset: inset 4px 4px 8px #c2cee0, inset -4px -4px 8px #ffffff;
+  --neu-shadow-inset-sm: inset 2px 2px 5px #c2cee0, inset -2px -2px 5px #ffffff;
+  --neu-shadow-pressed: inset 3px 3px 6px #b8c6d9, inset -3px -3px 6px #ffffff;
+  --neu-glow-accent: 0 0 15px rgba(59, 130, 246, 0.4);
+
+  --card-bg: #e8eef5;
+  --radius-main: 16px;
+  --radius-sm: 10px;
+}
+
+/* ✅ NEUMORPHIC DARK MODE OVERRIDES */
+[data-theme="dark"] {
+  --bg-main: #181d28;
+  --bg-card: #181d28;
+  --bg-accent: #3b82f6;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  --border-light: rgba(255, 255, 255, 0.05);
+
+  /* Neumorphic Shadow Variables (Dark Mode) */
+  --neu-shadow-raised: -7px -7px 16px #202736, 7px 7px 16px #10131a;
+  --neu-shadow-raised-sm: -4px -4px 10px #202736, 4px 4px 10px #10131a;
+  --neu-shadow-raised-hover: -9px -9px 20px #242c3d, 9px 9px 20px #0d1016;
+  --neu-shadow-inset: inset 4px 4px 8px #0e1118, inset -4px -4px 8px #222938;
+  --neu-shadow-inset-sm: inset 2px 2px 5px #0e1118, inset -2px -2px 5px #222938;
+  --neu-shadow-pressed: inset 3px 3px 6px #0d1016, inset -3px -3px 6px #232b3c;
+  --neu-glow-accent: 0 0 18px rgba(59, 130, 246, 0.5);
+
+  --card-bg: #181d28;
+}
+
+/* Base transitions & reset */
+* {
+  box-sizing: border-box;
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------- */
+/* ✅ NEUMORPHIC UTILITIES                       */
+/* --------------------------------------------- */
+
+/* Raised Neumorphic Surface */
+.neu-card, .stat-card, .chart-card, .dashboard-card, .form-card, .table-card, .card {
+  background: var(--bg-card);
+  border-radius: var(--radius-main);
+  box-shadow: var(--neu-shadow-raised);
+  border: 1px solid var(--border-light);
+}
+
+.neu-card:hover, .stat-card:hover, .chart-card:hover, .dashboard-card:hover {
+  box-shadow: var(--neu-shadow-raised-hover);
+  transform: translateY(-2px);
+}
+
+/* Inset Recessed Surface */
+.neu-inset, .form-input, .search input, .filter-select {
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-inset);
+  border-radius: var(--radius-sm);
+  border: none;
+  color: var(--text-main);
+  outline: none;
+}
+
+.neu-inset:focus, .form-input:focus, .search input:focus, .filter-select:focus {
+  box-shadow: var(--neu-shadow-inset), 0 0 0 2px rgba(59, 130, 246, 0.4);
+}
+
+/* Neumorphic Buttons */
+.neu-btn, .btn, .btn-primary, .btn-search {
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: var(--neu-shadow-raised-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+}
+
+.neu-btn:hover, .btn:hover, .btn-primary:hover, .btn-search:hover {
+  box-shadow: var(--neu-shadow-raised);
+  transform: translateY(-1px);
+}
+
+.neu-btn:active, .btn:active, .btn-primary:active, .btn-search:active {
+  box-shadow: var(--neu-shadow-pressed);
+  transform: translateY(0);
+}
+
+/* Neumorphic Primary Glowing Accent Button */
+.btn-primary-neu {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #ffffff;
+  box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.5), 4px 4px 12px rgba(29, 78, 216, 0.4);
+  border-radius: var(--radius-sm);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 22px;
+}
+
+.btn-primary-neu:hover {
+  box-shadow: -6px -6px 14px rgba(255, 255, 255, 0.6), 6px 6px 16px rgba(29, 78, 216, 0.5), var(--neu-glow-accent);
+  transform: translateY(-2px);
+}
+
+/* --------------------------------------------- */
+/* ✅ LAYOUT & CONTENT SHELL                     */
+/* --------------------------------------------- */
+.app-shell {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  min-height: 100vh;
+  background: var(--bg-main);
+}
+
+.content {
+  height: 100vh;
+  overflow-y: auto;
+  padding: 32px 40px;
+  background: var(--bg-main);
+}
+
+/* Custom Scrollbar for Content */
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+.content::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+.content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  box-shadow: var(--neu-shadow-inset-sm);
+}
+[data-theme="dark"] .content::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* --------------------------------------------- */
+/* ✅ PAGE HEADERS                               */
+/* --------------------------------------------- */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.page-head h2 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-head p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* --------------------------------------------- */
+/* ✅ NEUMORPHIC TABLES                          */
+/* --------------------------------------------- */
+.table-card {
+  background: var(--bg-card);
+  padding: 16px;
+  border-radius: var(--radius-main);
+  box-shadow: var(--neu-shadow-raised);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.table thead th {
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+}
+
+.table tbody tr {
+  background: var(--bg-card);
+  box-shadow: var(--neu-shadow-raised-sm);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--neu-shadow-raised);
+}
+
+.table td {
+  padding: 14px 18px;
+  color: var(--text-main);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.table td:first-child {
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.table td:last-child {
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+/* --------------------------------------------- */
+/* ✅ BADGES & CHIPS                             */
+/* --------------------------------------------- */
+.badge, .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: var(--neu-shadow-inset-sm);
+}
+
+.badge-pending, .status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.badge-verified, .status-verified, .status-healthy {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.badge-rejected, .status-rejected, .status-treatment {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+/* --------------------------------------------- */
+/* ✅ MODAL OVERLAY & POPUP                      */
+/* --------------------------------------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  width: 540px;
+  max-width: 90vw;
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: var(--neu-shadow-raised-hover);
+  border: 1px solid var(--border-light);
+  padding: 28px;
+}

@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+venv/
+__pycache__/
+*.pyc
+
+# Production build outputs
+dist/
+build/
+*.out
+
+# Environment & local variables
+.env
+.env.local
+.env.*.local
+
+# IDE & OS files
+.DS_Store
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
