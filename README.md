@@ -1,3 +1,5 @@
+# Upload into this repository into Build Branch at first, When BUGS are fixed, they push it into pre-production. Then I personally will check it and push it into production which is the final result.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
