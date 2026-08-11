@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Box, Card, CardContent, Typography, Button, Grid, Chip, Alert, Divider } from '@mui/material';
-import { CheckCircle, Error, Info, Warning, QrCode, LocalShipping, Farm, CalendarToday, VerifiedUser } from '@mui/icons-material';
+import { CheckCircle, Error, Info, Warning, QrCode, LocalShipping, Agriculture, CalendarToday, VerifiedUser } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const AlertResult = () => {
@@ -60,7 +60,7 @@ const AlertResult = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Farm fontSize="small" color="text.secondary" />
+                    <Agriculture fontSize="small" color="text.secondary" />
                     <Typography variant="body2" color="text.secondary">Farm</Typography>
                   </Box>
                   <Typography variant="body1" fontWeight={500}>{result.batchInfo.farm_name}</Typography>

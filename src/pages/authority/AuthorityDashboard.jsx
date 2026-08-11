@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Grid, Card, CardContent, Typography, Button, Chip, CircularProgress } from '@mui/material';
-import { LocalShipping, Inventory, QrCode, Farm, Assignment, Add } from '@mui/icons-material';
+import { LocalShipping, Inventory, QrCode, Agriculture, Assignment, Add } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { authorityApi } from '../../api/authorityApi';
 import { useAuth } from '../../context/AuthContext';
@@ -37,7 +37,7 @@ const AuthorityDashboard = () => {
 
   const statCards = [
     { label: 'Total Batches', value: stats.recentBatches, icon: <LocalShipping />, color: 'primary' },
-    { label: 'Farms Visited', value: stats.farmsVisited, icon: <Farm />, color: 'secondary' },
+    { label: 'Farms Visited', value: stats.farmsVisited, icon: <Agriculture />, color: 'secondary' },
     { label: 'Animals Tracked', value: stats.totalAnimals, icon: <Inventory />, color: 'success' },
     { label: 'Pending Quality', value: stats.pendingQuality, icon: <Assignment />, color: 'warning' },
   ];

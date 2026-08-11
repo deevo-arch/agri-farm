@@ -1,9 +1,9 @@
 import React from 'react';
-import { List, ListItem, ListItemButton, ListItemIcon, ListItemText, Accordion, AccordionSummary, AccordionDetails, ExpandMoreIcon } from '@mui/material';
+import { List, ListItem, ListItemButton, ListItemIcon, ListItemText, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { useLocation, NavLink } from 'react-router-dom';
 import {
   Dashboard, Pets, MedicalServices, CalendarToday, Person, QrCode,
-  Inventory, LocalShipping, VerifiedUser, Farm, DirectionsCar, Assignment, Search
+  Inventory, LocalShipping, VerifiedUser, Agriculture, DirectionsCar, Assignment, Search, ExpandMore
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,7 +35,7 @@ const menuItems = {
     { path: '/authority/create-batch', label: 'Create Batch', icon: <LocalShipping /> },
     { path: '/authority/batches', label: 'View Batches', icon: <Inventory /> },
     { path: '/authority/scan-qr', label: 'Scan QR/Barcode', icon: <Search /> },
-    { path: '/authority/farm-livestock', label: 'Farm & Livestock', icon: <Farm /> },
+    { path: '/authority/farm-livestock', label: 'Farm & Livestock', icon: <Agriculture /> },
   ],
   consumer: [
     { path: '/consumer/scan', label: 'Scan Milk QR', icon: <QrCode /> },
@@ -90,7 +90,7 @@ const Sidebar = () => {
                 sx={{ mb: 0.5, borderRadius: 2, '&:before': { display: 'none' }, boxShadow: 'none' }}
               >
                 <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
+                  expandIcon={<ExpandMore />}
                   sx={{ borderRadius: 2, bgcolor: isExpanded ? 'primary.light' : 'transparent', color: isExpanded ? 'primary.contrastText' : 'text.primary' }}
                 >
                   <ListItemIcon sx={{ color: isExpanded ? 'inherit' : 'text.secondary', minWidth: 40 }}>{item.icon}</ListItemIcon>
