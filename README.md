@@ -1,9 +1,74 @@
-# Upload into this repository into Build Branch at first, When BUGS are fixed, they push it into pre-production. Then I personally will check it and push it into production which is the final result.
+================================================================================
+          HOW TO CONTRIBUTE CODE AND ELEVATE IT TO PRODUCTION
+================================================================================
 
-# Getting Started with Create React App
+PREREQUISITES (ONE-TIME SETUP):
+--------------------------------------------------------------------------------
+1. Open terminal in your local project folder:
+   cd /path/to/your/project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+2. Initialize Git (if not already done):
+   git init
 
+3. Save your GitHub credentials locally so you don't type your password every time:
+   git config --global credential.helper store
+
+
+================================================================================
+LEVEL 1: UPLOADING YOUR WORK (LOCAL MACHINE -> BUILD BRANCH)
+================================================================================
+Use this every time you want to save your progress from your computer to GitHub.
+
+1. Switch to the main workspace branch:
+   git checkout build
+
+2. Download any updates made by teammates before you start working:
+   git pull origin build
+
+3. Stage all your new/edited files:
+   git add .
+
+4. Save your progress locally with a description of what you changed:
+   git commit -m "your description of changes here"
+
+5. Send your code up to GitHub:
+   git push origin build
+
+
+================================================================================
+LEVEL 2: PROMOTING TO STAGING (BUILD -> PRE-PRODUCTION)
+================================================================================
+Use this when a feature on the build branch is finished and ready for testing.
+
+1. Open your browser and go to your project's GitHub repository page.
+
+2. Click on the "Pull requests" tab near the top, then click the green "New pull request" button.
+
+3. Set the branch dropdowns:
+   - base: pre-production
+   - compare: build
+
+4. Click "Create pull request", write a brief explanation of what is ready for testing, and submit it.
+
+5. Ask a teammate to review it. Once 1 approval is granted, click "Merge pull request".
+
+
+================================================================================
+LEVEL 3: GOING LIVE (PRE-PRODUCTION -> PRODUCTION)
+================================================================================
+Use this when pre-production testing is complete and code is ready for release.
+
+1. Go to your project's GitHub repository page in your browser.
+
+2. Click "Pull requests" -> "New pull request".
+
+3. Set the branch dropdowns:
+   - base: production
+   - compare: pre-production
+
+4. Click "Create pull request" and submit it.
+
+5. Notify the repository owner. Only the designated admin can review and click "Merge pull request" to deploy live.
 ## Available Scripts
 
 In the project directory, you can run:
@@ -68,5 +133,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/a
 This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
 ### `npm run build` fails to minify
+
+Designed & Developed by Akash Mishra
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
