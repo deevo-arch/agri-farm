@@ -174,5 +174,3 @@ To explore the dashboard and role-switching features:
 - **Veterinarian**: `vet@health.org` / `vet123`
 
 ---
-
-*Designed, Developed by **Akash Mishra** for Sustainable Livestock Stewardship & Food Safety Compliance.*
