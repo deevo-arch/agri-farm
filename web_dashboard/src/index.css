@@ -1,65 +1,56 @@
 /* --------------------------------------------- */
-/* ✅ NEUMORPHIC GLOBAL DESIGN SYSTEM            */
+/* ✅ BLACK, GREY, VIOLET NEUMORPHIC SYSTEM     */
 /* --------------------------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Core Neumorphic Light Theme (Soft Slate Blue) */
-  --bg-main: #e8eef5;
-  --bg-card: #e8eef5;
-  --bg-accent: #3b82f6;
-  --bg-accent-hover: #2563eb;
+  /* Core Obsidian Black, Slate Grey, Electric Violet Theme */
+  --bg-main: #09090f;
+  --bg-card: #13111c;
+  --bg-accent: #8b5cf6;
+  --bg-accent-hover: #7c3aed;
   
-  --text-main: #1e293b;
-  --text-muted: #64748b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
 
-  --border-light: rgba(255, 255, 255, 0.6);
+  --border-light: rgba(139, 92, 246, 0.18);
 
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
 
-  /* Neumorphic Shadow Variables (Light Mode) */
-  --neu-shadow-raised: -8px -8px 16px #ffffff, 8px 8px 16px #c4d0e0;
-  --neu-shadow-raised-sm: -4px -4px 10px #ffffff, 4px 4px 10px #cbd7e6;
-  --neu-shadow-raised-hover: -10px -10px 20px #ffffff, 10px 10px 20px #b8c6d9;
-  --neu-shadow-inset: inset 4px 4px 8px #c2cee0, inset -4px -4px 8px #ffffff;
-  --neu-shadow-inset-sm: inset 2px 2px 5px #c2cee0, inset -2px -2px 5px #ffffff;
-  --neu-shadow-pressed: inset 3px 3px 6px #b8c6d9, inset -3px -3px 6px #ffffff;
-  --neu-glow-accent: 0 0 15px rgba(59, 130, 246, 0.4);
+  /* Neumorphic Shadow Variables (Black-Violet Obsidian) */
+  --neu-shadow-raised: -6px -6px 14px #1c182b, 6px 6px 14px #050409;
+  --neu-shadow-raised-sm: -4px -4px 10px #1c182b, 4px 4px 10px #050409;
+  --neu-shadow-raised-hover: -8px -8px 18px #221e36, 8px 8px 18px #030206;
+  --neu-shadow-inset: inset 3px 3px 6px #050409, inset -3px -3px 6px #1c182b;
+  --neu-shadow-inset-sm: inset 2px 2px 4px #050409, inset -2px -2px 4px #1c182b;
+  --neu-shadow-pressed: inset 3px 3px 6px #030206, inset -3px -3px 6px #221e36;
+  --neu-glow-accent: 0 0 22px rgba(139, 92, 246, 0.55);
 
-  --card-bg: #e8eef5;
+  --card-bg: #13111c;
   --radius-main: 16px;
   --radius-sm: 10px;
 }
 
-/* ✅ NEUMORPHIC DARK MODE OVERRIDES */
-[data-theme="dark"] {
-  --bg-main: #181d28;
-  --bg-card: #181d28;
-  --bg-accent: #3b82f6;
-
-  --text-main: #f1f5f9;
+[data-theme="light"], [data-theme="dark"] {
+  --bg-main: #09090f;
+  --bg-card: #13111c;
+  --bg-accent: #8b5cf6;
+  --text-main: #f8fafc;
   --text-muted: #94a3b8;
-
-  --border-light: rgba(255, 255, 255, 0.05);
-
-  /* Neumorphic Shadow Variables (Dark Mode) */
-  --neu-shadow-raised: -7px -7px 16px #202736, 7px 7px 16px #10131a;
-  --neu-shadow-raised-sm: -4px -4px 10px #202736, 4px 4px 10px #10131a;
-  --neu-shadow-raised-hover: -9px -9px 20px #242c3d, 9px 9px 20px #0d1016;
-  --neu-shadow-inset: inset 4px 4px 8px #0e1118, inset -4px -4px 8px #222938;
-  --neu-shadow-inset-sm: inset 2px 2px 5px #0e1118, inset -2px -2px 5px #222938;
-  --neu-shadow-pressed: inset 3px 3px 6px #0d1016, inset -3px -3px 6px #232b3c;
-  --neu-glow-accent: 0 0 18px rgba(59, 130, 246, 0.5);
-
-  --card-bg: #181d28;
+  --card-bg: #13111c;
 }
 
 /* Base transitions & reset */
 * {
   box-sizing: border-box;
-  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html, body {
@@ -80,9 +71,10 @@ body {
 /* ✅ NEUMORPHIC UTILITIES                       */
 /* --------------------------------------------- */
 
-/* Raised Neumorphic Surface */
-.neu-card, .stat-card, .chart-card, .dashboard-card, .form-card, .table-card, .card {
-  background: var(--bg-card);
+/* Raised Neumorphic Surface - 100% SOLID OPAQUE (0% TRANSPARENCY) */
+.neu-card, .stat-card, .chart-card, .dashboard-card, .form-card, .table-card, .card, .guide-content-section, .doc-card, .user-graphic-card {
+  background: #13111c !important;
+  opacity: 1 !important;
   border-radius: var(--radius-main);
   box-shadow: var(--neu-shadow-raised);
   border: 1px solid var(--border-light);
@@ -104,7 +96,7 @@ body {
 }
 
 .neu-inset:focus, .form-input:focus, .search input:focus, .filter-select:focus {
-  box-shadow: var(--neu-shadow-inset), 0 0 0 2px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--neu-shadow-inset), 0 0 0 2px rgba(139, 92, 246, 0.5);
 }
 
 /* Neumorphic Buttons */
@@ -125,6 +117,7 @@ body {
 
 .neu-btn:hover, .btn:hover, .btn-primary:hover, .btn-search:hover {
   box-shadow: var(--neu-shadow-raised);
+  color: var(--bg-accent);
   transform: translateY(-1px);
 }
 
@@ -133,26 +126,24 @@ body {
   transform: translateY(0);
 }
 
-/* Neumorphic Primary Glowing Accent Button */
+/* Neumorphic Primary Glowing Violet Accent Button */
 .btn-primary-neu {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
   color: #ffffff;
-  box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.5), 4px 4px 12px rgba(29, 78, 216, 0.4);
+  box-shadow: -4px -4px 10px rgba(139, 92, 246, 0.3), 4px 4px 12px rgba(0, 0, 0, 0.6);
   border-radius: var(--radius-sm);
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   padding: 12px 22px;
 }
 
 .btn-primary-neu:hover {
-  box-shadow: -6px -6px 14px rgba(255, 255, 255, 0.6), 6px 6px 16px rgba(29, 78, 216, 0.5), var(--neu-glow-accent);
+  box-shadow: -6px -6px 14px rgba(139, 92, 246, 0.4), 6px 6px 16px rgba(0, 0, 0, 0.8), var(--neu-glow-accent);
   transform: translateY(-2px);
 }
 
-/* --------------------------------------------- */
-/* ✅ LAYOUT & CONTENT SHELL                     */
-/* --------------------------------------------- */
+/* Layout Shell */
 .app-shell {
   display: grid;
   grid-template-columns: 270px 1fr;
@@ -175,17 +166,12 @@ body {
   background: var(--bg-main);
 }
 .content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #262238;
   border-radius: 10px;
   box-shadow: var(--neu-shadow-inset-sm);
 }
-[data-theme="dark"] .content::-webkit-scrollbar-thumb {
-  background: #334155;
-}
 
-/* --------------------------------------------- */
-/* ✅ PAGE HEADERS                               */
-/* --------------------------------------------- */
+/* Page Headers */
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -198,7 +184,7 @@ body {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+  background: linear-gradient(135deg, #f8fafc, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -209,9 +195,7 @@ body {
   font-size: 14px;
 }
 
-/* --------------------------------------------- */
-/* ✅ NEUMORPHIC TABLES                          */
-/* --------------------------------------------- */
+/* Neumorphic Tables */
 .table-card {
   background: var(--bg-card);
   padding: 16px;
@@ -252,8 +236,8 @@ body {
 .table td {
   padding: 14px 18px;
   color: var(--text-main);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .table td:first-child {
@@ -266,9 +250,7 @@ body {
   border-bottom-right-radius: var(--radius-sm);
 }
 
-/* --------------------------------------------- */
-/* ✅ BADGES & CHIPS                             */
-/* --------------------------------------------- */
+/* Badges */
 .badge, .status-badge {
   display: inline-flex;
   align-items: center;
@@ -281,27 +263,25 @@ body {
 }
 
 .badge-pending, .status-pending {
-  background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
 }
 
 .badge-verified, .status-verified, .status-healthy {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
 }
 
 .badge-rejected, .status-rejected, .status-treatment {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 
-/* --------------------------------------------- */
-/* ✅ MODAL OVERLAY & POPUP                      */
-/* --------------------------------------------- */
+/* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(9, 9, 15, 0.8);
   backdrop-filter: blur(8px);
   display: grid;
   place-items: center;

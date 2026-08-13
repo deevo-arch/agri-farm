@@ -4,11 +4,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import "../styles/Reports.css";
 import { dashboardAPI } from "../services/api";
+import { CustomToast, ToastConfig } from "../components/CustomToast";
 
 export default function Reports() {
   const [reportType, setReportType] = useState("all");
   const [dateRange, setDateRange] = useState("month");
   const [isExporting, setIsExporting] = useState(false);
+  const [toast, setToast] = useState<ToastConfig | null>(null);
 
   // State for real statistics
   const [stats, setStats] = useState({
@@ -129,10 +131,10 @@ export default function Reports() {
       });
 
       doc.save(`treatment-records-${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Treatment records PDF exported successfully!');
+      setToast({ type: 'success', title: 'PDF Export Complete', message: 'Treatment records PDF exported successfully!' });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export PDF. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -180,10 +182,10 @@ export default function Reports() {
       });
 
       doc.save(`farmer-database-${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Farmer database PDF exported successfully!');
+      setToast({ type: 'success', title: 'PDF Export Complete', message: 'Farmer database PDF exported successfully!' });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export PDF. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -232,10 +234,10 @@ export default function Reports() {
       });
 
       doc.save(`animal-inventory-${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Animal inventory PDF exported successfully!');
+      setToast({ type: 'success', title: 'PDF Export Complete', message: 'Animal inventory PDF exported successfully!' });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export PDF. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -284,10 +286,10 @@ export default function Reports() {
       });
 
       doc.save(`compliance-report-${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Compliance report PDF exported successfully!');
+      setToast({ type: 'success', title: 'PDF Export Complete', message: 'Compliance report PDF exported successfully!' });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export PDF. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -332,10 +334,10 @@ export default function Reports() {
       });
 
       doc.save(`medicine-usage-${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Medicine usage PDF exported successfully!');
+      setToast({ type: 'success', title: 'PDF Export Complete', message: 'Medicine usage PDF exported successfully!' });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export PDF. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -384,10 +386,10 @@ export default function Reports() {
       });
 
       doc.save(`veterinarian-activity-${new Date().toISOString().split('T')[0]}.pdf`);
-      alert('Veterinarian activity PDF exported successfully!');
+      setToast({ type: 'success', title: 'PDF Export Complete', message: 'Veterinarian activity PDF exported successfully!' });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export PDF. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -420,10 +422,10 @@ export default function Reports() {
         'text/csv'
       );
 
-      alert('Treatment records exported successfully!');
+      setToast({ type: 'success', title: 'Export Complete', message: 'Treatment records exported successfully!' });
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -452,10 +454,10 @@ export default function Reports() {
         'text/csv'
       );
 
-      alert('Farmer database exported successfully!');
+      setToast({ type: 'success', title: 'Export Complete', message: 'Farmer database exported successfully!' });
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -486,10 +488,10 @@ export default function Reports() {
         'text/csv'
       );
 
-      alert('Animal inventory exported successfully!');
+      setToast({ type: 'success', title: 'Export Complete', message: 'Animal inventory exported successfully!' });
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -519,10 +521,10 @@ export default function Reports() {
         'text/csv'
       );
 
-      alert('Veterinarian activity exported successfully!');
+      setToast({ type: 'success', title: 'Export Complete', message: 'Veterinarian activity exported successfully!' });
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -552,10 +554,10 @@ export default function Reports() {
         'text/csv'
       );
 
-      alert('Compliance report exported successfully!');
+      setToast({ type: 'success', title: 'Export Complete', message: 'Compliance report exported successfully!' });
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -580,10 +582,10 @@ export default function Reports() {
         'text/csv'
       );
 
-      alert('Medicine usage exported successfully!');
+      setToast({ type: 'success', title: 'Export Complete', message: 'Medicine usage exported successfully!' });
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export. Check console for details.');
+      setToast({ type: 'error', title: 'Export Failed', message: 'Failed to export. Check console for details.' });
     } finally {
       setIsExporting(false);
     }
@@ -935,6 +937,8 @@ export default function Reports() {
           {isExporting ? 'Exporting...' : 'Export All Reports (CSV)'}
         </button>
       </div>
+
+      <CustomToast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

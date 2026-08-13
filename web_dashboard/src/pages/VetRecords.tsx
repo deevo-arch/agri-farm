@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import "../styles/VetRecords.css";
 import { dashboardAPI, Vet } from "../services/api";
+import { useAuthContext } from "../context/AuthContext";
+import { CustomToast, ToastConfig } from "../components/CustomToast";
 
 // Define interfaces for local vet data
 interface VetRecord {
@@ -249,8 +251,19 @@ export default function VetRecords() {
     new Set(vetData.map(v => v.city).filter(Boolean))
   ).sort();
 
+  const { activeRole, user } = useAuthContext();
+  const currentRole = activeRole || user?.role || 'authority';
+
   // Filter vets based on search and filters
   const filteredVets = vetData.filter((vet) => {
+    if (currentRole === 'farmer') {
+      const isAssignedDistrictVet = vet.city.toLowerCase().includes('pune') || vet.status === 'Verified';
+      if (!isAssignedDistrictVet) return false;
+    } else if (currentRole === 'vet') {
+      const isClinicTeamOrSelf = vet.name.toLowerCase().includes(user?.fullName?.toLowerCase() || 'vet') || vet.city.toLowerCase().includes('pune');
+      if (!isClinicTeamOrSelf) return false;
+    }
+
     const term = searchTerm.toLowerCase();
     const matchesSearch =
       vet.name.toLowerCase().includes(term) ||
@@ -271,8 +284,14 @@ export default function VetRecords() {
     return matchesSearch && matchesStatus && matchesDistrict;
   });
 
+  const [toast, setToast] = useState<ToastConfig | null>(null);
+
   const handleViewDocuments = (vetId: string) => {
-    alert(`Opening documents for vet ${vetId}`);
+    setToast({
+      type: 'info',
+      title: 'Veterinary Council Records',
+      message: `Fetching verified council registration & license documents for Vet ID #${vetId}...`
+    });
   };
 
   // Calculate stats
@@ -596,6 +615,8 @@ export default function VetRecords() {
           </table>
         </div>
       )}
+
+      <CustomToast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

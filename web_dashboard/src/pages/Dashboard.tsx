@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import StatCard from "../components/StatCard";
+import ReflectiveCard from "../components/ReflectiveCard";
+import { getAvatarUrl, getLocalSvgAvatar } from "../utils/avatarGenerator";
 import { FiUsers, FiTag, FiShield, FiActivity, FiBarChart2, FiAlertTriangle, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
 import { MdOutlineVaccines } from "react-icons/md";
 import {
@@ -20,6 +22,7 @@ import {
   Area,
 } from "recharts";
 import "../styles/Dashboard.css";
+import { useAuthContext } from "../context/AuthContext";
 import {
   dashboardAPI,
   generateMockData,
@@ -69,10 +72,86 @@ const DEFAULT_DASHBOARD_DATA: SimplifiedDashboard = {
       { species: "Sheep", count: 45 },
     ],
     farm_safety_status: [
-      { name: "Safe", value: 82 },
-      { name: "Under Withdrawal", value: 18 }
+      { name: "Safe", value: 82, color: "#34d399" },
+      { name: "Under Withdrawal", value: 18, color: "#fbbf24" }
     ]
   }
+};
+
+const getScopedMockData = (role: string): SimplifiedDashboard => {
+  if (role === 'farmer') {
+    return {
+      overview: {
+        total_farmers: 1,
+        pending_verifications: 0,
+        total_animals: 14,
+        withdrawal_pending: 1,
+        total_vets: 2,
+        verified_vets: 2,
+        active_treatments: 3,
+        under_withdrawal: 1,
+        safety_compliance_rate: 96.5,
+        growth_rate: 12.0
+      },
+      charts: {
+        treatment_trends: [
+          { month: 'Jan', count: 1 },
+          { month: 'Feb', count: 0 },
+          { month: 'Mar', count: 2 },
+          { month: 'Apr', count: 1 },
+          { month: 'May', count: 3 }
+        ],
+        animals_by_species: [
+          { species: 'Cattle', count: 8 },
+          { species: 'Buffalo', count: 4 },
+          { species: 'Goat', count: 2 }
+        ],
+        farm_safety_status: [
+          { name: 'Compliant Farm', value: 92, color: '#34d399' },
+          { name: 'Under Review', value: 8, color: '#fbbf24' }
+        ]
+      },
+      today_treatments: 1
+    };
+  } else if (role === 'vet') {
+    return {
+      overview: {
+        total_farmers: 18,
+        pending_verifications: 2,
+        total_animals: 85,
+        withdrawal_pending: 4,
+        total_vets: 4,
+        verified_vets: 4,
+        active_treatments: 14,
+        under_withdrawal: 4,
+        safety_compliance_rate: 94.2,
+        growth_rate: 8.5
+      },
+      charts: {
+        treatment_trends: [
+          { month: 'Jan', count: 5 },
+          { month: 'Feb', count: 8 },
+          { month: 'Mar', count: 12 },
+          { month: 'Apr', count: 9 },
+          { month: 'May', count: 14 }
+        ],
+        animals_by_species: [
+          { species: 'Cattle', count: 45 },
+          { species: 'Buffalo', count: 25 },
+          { species: 'Goat', count: 15 }
+        ],
+        farm_safety_status: [
+          { name: 'Verified Healthy', value: 82, color: '#34d399' },
+          { name: 'Pending Verification', value: 12, color: '#fbbf24' },
+          { name: 'Flagged', value: 6, color: '#f87171' }
+        ]
+      },
+      today_treatments: 3
+    };
+  }
+
+  // Authority / Admin (Global)
+  return DEFAULT_DASHBOARD_DATA;
 };
 
 // Define interface for chart data state
@@ -86,6 +165,16 @@ interface ChartDataState {
 }
 
 export default function Dashboard() {
+  const { activeRole, user } = useAuthContext();
+  const currentRole = activeRole || user?.role || 'authority';
+
+  const [avatarIndex, setAvatarIndex] = useState(0);
+
+  const hashCode = (str: string) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+    return h;
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
@@ -186,12 +275,11 @@ export default function Dashboard() {
           });
         }
       } else {
-        console.log('🌐 API not reachable, using mock data');
-        setError('API server is not reachable. Using mock data.');
+        console.log('🌐 API not reachable, using role-scoped mock data');
         setApiStatus('disconnected');
 
-        // Use mock data
-        const mockData = generateMockData.mockDashboard();
+        // Use role-scoped mock data
+        const mockData = getScopedMockData(currentRole);
         setDashboardData(mockData);
         setChartData({
           lineData: mockData.charts.treatment_trends,
@@ -251,7 +339,7 @@ export default function Dashboard() {
     // Auto-refresh every 2 minutes
     const interval = setInterval(fetchDashboardData, 2 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentRole]);
 
   // Calculate derived statistics with safe defaults
   const totalFarmers = dashboardData?.overview?.total_farmers || 143;
@@ -293,39 +381,90 @@ export default function Dashboard() {
           <h2>Agri Farm Dashboard</h2>
           <p>Authority overview of antimicrobial usage and farm safety</p>
           <span className="page-date">{today}</span>
-          <div className="api-status-indicator">
+          <div className="api-status-pill-badge">
             <span className={`status-dot ${apiStatus}`}></span>
             <span className="status-text">
-              {apiStatus === 'connected' ? 'Live API Data' :
-                apiStatus === 'disconnected' ? 'Using Mock Data' : 'Connecting...'}
+              {apiStatus === 'connected'
+                ? 'Live API Connected'
+                : apiStatus === 'disconnected'
+                ? 'Offline Mode (Mock Data Active)'
+                : 'Connecting...'}
             </span>
+            {apiStatus === 'disconnected' && (
+              <button
+                className="api-retry-inline-btn"
+                onClick={fetchDashboardData}
+                disabled={loading}
+                title="Retry connecting to live API server"
+              >
+                <FiRefreshCw size={11} className={loading ? 'spinning' : ''} />
+                {loading ? 'Retrying...' : 'Retry Connection'}
+              </button>
+            )}
           </div>
         </div>
 
         <div className="header-actions">
+          {/* Neumorphic User Profile & System Admin Avatar Badge */}
+          <div className="dash-user-badge neu-card">
+            <div
+              className="dash-avatar-container neu-btn"
+              onClick={() => setAvatarIndex(prev => prev + 1)}
+              title="Click to cycle avatar library style"
+            >
+              <img
+                src={getAvatarUrl(user?.email || user?.fullName || 'System Admin', avatarIndex)}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = getLocalSvgAvatar(user?.email || user?.fullName || 'User');
+                }}
+                alt="User Profile Avatar"
+                className="dash-avatar-img"
+              />
+              <span className="avatar-cycle-badge" title="Cycle Avatar">🎲</span>
+            </div>
+            <div className="dash-user-text">
+              <span className="dash-user-name">{user?.fullName || (user?.email ? user.email.split('@')[0] : 'System Admin')}</span>
+              <span className="dash-user-role-pill">
+                {currentRole === 'farmer' ? '🌾 Farmer Portal' : currentRole === 'vet' ? '🩺 Vet Portal' : '🛡️ Authority Admin'}
+              </span>
+            </div>
+          </div>
+
           <button
-            className="head-icon-btn refresh-btn"
+            className="head-icon-btn refresh-btn neu-btn"
             onClick={fetchDashboardData}
             aria-label="Refresh data"
             title="Refresh dashboard data"
             disabled={loading}
           >
-            <FiRefreshCw size={20} className={loading ? 'spinning' : ''} />
-          </button>
-          <button className="head-icon-btn" aria-label="Notifications">
-            🔔
+            <FiRefreshCw size={18} className={loading ? 'spinning' : ''} />
           </button>
         </div>
       </header>
 
-      {error && (
-        <div className="error-banner">
-          <p>⚠️ {error}</p>
-          <button onClick={fetchDashboardData} disabled={loading}>
-            {loading ? 'Retrying...' : 'Retry Connection'}
-          </button>
+      {/* System Admin Identity & Live Holographic Avatar Banner */}
+      <section className="dash-avatar-hero-banner neu-card">
+        <div className="dash-hero-info">
+          <span className="dash-hero-tag">🛡️ SYSTEM AUTHORIZED IDENTITY</span>
+          <h3>Welcome, {user?.fullName || (user?.email ? user.email.split('@')[0] : 'System Admin')}</h3>
+          <p>Active Portal: <strong>{currentRole.toUpperCase()}</strong> | Bound Account: <strong>{user?.email || 'admin@amu.gov'}</strong></p>
+          <div className="dash-hero-pills">
+            <span className="neu-pill">⚡ System Status: Live</span>
+            <span className="neu-pill">🔒 Security Tier: Encrypted</span>
+            <span className="neu-pill">🆔 Council Reg: #MH-AMU-8821</span>
+          </div>
         </div>
-      )}
+
+        <div className="dash-hero-card-wrap">
+          <ReflectiveCard
+            userName={(user?.fullName || user?.email?.split('@')[0] || 'SYSTEM ADMIN').toUpperCase()}
+            userRole={`${currentRole.toUpperCase()} DIRECTOR`}
+            idNumber={`ID-${Math.floor(Math.abs(hashCode(user?.email || 'admin')) % 899999 + 100000)}`}
+            blurStrength={6}
+            color="#ffffff"
+          />
+        </div>
+      </section>
 
       {/* KPI Cards - Row 1 */}
       <section className="grid-4">
@@ -718,35 +857,6 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
-
-      {/* API Status Information */}
-      {apiStatus === 'disconnected' && (
-        <section className="api-info mt-24">
-          <div className="dashboard-card info-card">
-            <div className="info-header">
-              <FiAlertTriangle className="info-icon" />
-              <h3>Development Mode</h3>
-            </div>
-            <p>
-              The dashboard is currently displaying mock data because the API server
-              is not reachable. This is normal during development.
-            </p>
-            <div className="info-actions">
-              <button onClick={fetchDashboardData} className="btn-primary" disabled={loading}>
-                {loading ? 'Reconnecting...' : 'Try Reconnecting'}
-              </button>
-              <a
-                href="http://127.0.0.1:5000/authority/dashboard/test"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary"
-              >
-                Test API Directly
-              </a>
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

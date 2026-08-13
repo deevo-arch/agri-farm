@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiAlertCircle, FiCheckCircle, FiClock, FiRefreshCw } from "react-icons/fi";
 import "../styles/TreatmentLog.css";
 import { dashboardAPI, Treatment as ApiTreatment, Farmer, Animal, Vet } from "../services/api";
+import { useAuthContext } from "../context/AuthContext";
 
 
 // Local interface for transformed treatment data
@@ -386,11 +387,22 @@ export default function TreatmentLog() {
   }, []);
 
 
-  // Filter data based on search criteria
+  const { activeRole, user } = useAuthContext();
+  const currentRole = activeRole || user?.role || 'authority';
+
+  // Filter data based on search criteria and activeRole scoping
   useEffect(() => {
     if (!treatmentData.length) return;
 
     const filtered = treatmentData.filter((treatment) => {
+      if (currentRole === 'farmer') {
+        const isFarmerRecord = treatment.farmerId === 'F001' || treatment.farmer.toLowerCase().includes(user?.fullName?.toLowerCase() || 'farmer');
+        if (!isFarmerRecord) return false;
+      } else if (currentRole === 'vet') {
+        const isVetRecord = treatment.vetName.toLowerCase().includes(user?.fullName?.toLowerCase() || 'vet') || treatment.status === 'Active';
+        if (!isVetRecord) return false;
+      }
+
       const matchesFarmer = farmerId
         ? treatment.farmerId.toLowerCase().includes(farmerId.toLowerCase()) ||
         treatment.farmer.toLowerCase().includes(farmerId.toLowerCase())
@@ -414,7 +426,7 @@ export default function TreatmentLog() {
     });
 
     setFilteredData(filtered);
-  }, [farmerId, animalId, searchTerm, treatmentData]);
+  }, [farmerId, animalId, searchTerm, treatmentData, currentRole, user?.fullName]);
 
 
   const handleSearch = () => {

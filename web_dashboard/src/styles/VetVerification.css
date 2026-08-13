@@ -99,13 +99,294 @@
 }
 
 .verification-table th {
+  text-align: left;
   padding: 1rem 1.2rem;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 2px solid var(--border-light);
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--neu-shadow-dark);
+}
+
+/* ==========================================
+   SELF-VERIFICATION HERO & STEPPER STYLES
+   ========================================== */
+.status-hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.8rem 2.2rem;
+  border-radius: 20px;
+  background: #13111c;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.status-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.status-badge-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-pills {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.status-pill {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.status-pill.verified {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.status-pill.pending {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.district-pill {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.farmer-farm-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.farmer-owner {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.primary-gradient-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+  transition: all 0.2s ease;
+}
+
+.primary-gradient-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+}
+
+/* Stepper Form Wrapper */
+.stepper-section-wrapper {
+  padding: 2rem;
+  border-radius: 20px;
+  background: #13111c;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  margin-bottom: 2rem;
+}
+
+.stepper-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stepper-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.stepper-header p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.step-inner-form {
+  padding: 1rem 0;
+}
+
+.step-title {
+  margin: 0 0 1.2rem;
+  font-size: 1.1rem;
+  color: #c084fc;
+  font-weight: 700;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.form-input {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #1b182b;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Document Upload Grid */
+.doc-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+
+.doc-upload-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 14px;
+  background: #1b182b;
+  border: 1px dashed rgba(139, 92, 246, 0.5);
+}
+
+.doc-upload-box h5 {
+  margin: 0;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.doc-upload-box .file-name {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.upload-badge {
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Review Summary */
+.review-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 1.2rem;
+  border-radius: 14px;
+  background: #1b182b;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #94a3b8;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.review-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.review-row strong {
+  color: #ffffff;
+}
+
+/* Details Cards */
+.verified-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.detail-card {
+  padding: 1.5rem;
+  border-radius: 18px;
+  background: #13111c;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.detail-card h3 {
+  margin: 0 0 1.2rem;
+  font-size: 1.1rem;
+  color: #c084fc;
+  font-weight: 800;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.detail-row strong {
+  color: #ffffff;
 }
 
 .verification-table td {

@@ -1,0 +1,301 @@
+.reflective-card-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #1a1a1a;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  isolation: isolate;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.reflective-svg-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.reflective-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.2) scaleX(-1);
+
+  filter: saturate(var(--saturation, 0)) contrast(120%) brightness(110%) blur(var(--blur-strength, 12px)) url(#metallic-displacement);
+
+  z-index: 0;
+  opacity: 0.9;
+  transition: filter 0.3s ease;
+}
+
+.reflective-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: var(--roughness, 0.4);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.reflective-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.1) 40%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(255, 255, 255, 0.1) 60%,
+      rgba(255, 255, 255, 0.3) 100%);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: var(--metalness, 1);
+}
+
+.reflective-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.6) 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.reflective-content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 20px;
+  color: var(--text-color, white);
+  background: var(--overlay-color, rgba(255, 255, 255, 0.05));
+  box-sizing: border-box;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camera-trigger-badge:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
+.status-indicator-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-cam-icon {
+  color: #34d399;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+.inactive-cam-icon {
+  color: #f43f5e;
+}
+
+.status-icon {
+  opacity: 0.85;
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* CENTER BODY: LIVE BLURRED CAMERA AVATAR & REPOSITIONED IDENTITY TEXT */
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0;
+  gap: 10px;
+}
+
+.center-avatar-container {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid rgba(139, 92, 246, 0.6);
+  box-shadow:
+    0 0 20px rgba(139, 92, 246, 0.5),
+    inset 0 0 12px rgba(0, 0, 0, 0.7);
+  background: #0d0b17;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.center-avatar-container:hover {
+  transform: scale(1.05);
+  border-color: #c084fc;
+}
+
+.center-avatar-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  filter: blur(2.5px) contrast(120%) brightness(105%);
+}
+
+.center-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.randomize-chip-btn {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(139, 92, 246, 0.85);
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.center-avatar-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(1.5px);
+}
+
+.avatar-scan-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+.user-info {
+  text-align: center;
+  margin-top: 2px;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.user-role {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  opacity: 0.85;
+  margin: 0;
+  text-transform: uppercase;
+  color: #c084fc;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 12px;
+}
+
+.id-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.value {
+  font-family: monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.fingerprint-icon {
+  opacity: 0.5;
+  color: #8b5cf6;
+}

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import "../styles/FarmerRecords.css";
 import { dashboardAPI, testApiConnectionDetailed, FarmerAnimalResponse } from "../services/api";
+import { useAuthContext } from "../context/AuthContext";
 
 type FarmerDocumentStatus = "VERIFIED" | "PENDING" | "REJECTED";
 
@@ -311,7 +312,18 @@ const FarmerRecords: React.FC = () => {
     new Set(farmersData.map(f => f.district).filter(Boolean))
   ).sort();
 
+  const { activeRole, user } = useAuthContext();
+  const currentRole = activeRole || user?.role || 'authority';
+
   const filteredFarmers = farmersData.filter((farmer) => {
+    if (currentRole === 'farmer') {
+      const isCurrentFarmer = farmer.id === '1' || farmer.id === 'F001' || farmer.name.toLowerCase().includes(user?.fullName?.toLowerCase() || 'farmer');
+      if (!isCurrentFarmer) return false;
+    } else if (currentRole === 'vet') {
+      const isAssignedFarmer = farmer.district.toLowerCase() === 'pune' || farmer.status === 'Verified';
+      if (!isAssignedFarmer) return false;
+    }
+
     const term = searchTerm.toLowerCase();
     const matchesSearch =
       farmer.name.toLowerCase().includes(term) ||
