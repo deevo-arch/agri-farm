@@ -1,0 +1,26 @@
+package com.livestock.trace.qr;
+
+import com.livestock.trace.qr.dto.QrCodeResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/milk-batches")
+@RequiredArgsConstructor
+public class QrCodeController {
+
+    private final QrCodeService qrCodeService;
+
+    @PostMapping("/{milkBatchId}/qr")
+    public ResponseEntity<QrCodeResponse> generateQr(@PathVariable Long milkBatchId) {
+        boolean alreadyExists = qrCodeService.existsForMilkBatch(milkBatchId);
+        QrCodeResponse response = qrCodeService.generateForMilkBatch(milkBatchId);
+        HttpStatus status = alreadyExists ? HttpStatus.OK : HttpStatus.CREATED;
+        return ResponseEntity.status(status).body(response);
+    }
+}

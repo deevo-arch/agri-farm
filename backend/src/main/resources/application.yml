@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: livestock-trace
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/livestock_trace?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+app:
+  jwt:
+    # DEV-ONLY default secret. Override with the JWT_SECRET env var for any non-local run.
+    secret: ${JWT_SECRET:dev-only-secret-change-me-before-any-real-deployment-min-32-bytes}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  public:
+    trace-base-url: ${PUBLIC_TRACE_BASE_URL:http://localhost:3000/trace}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+logging:
+  level:
+    org.hibernate.SQL: debug
