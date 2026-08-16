@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,22 +42,28 @@ public class QrCodeService {
         return qrCodeRepository.findByMilkBatchId(milkBatchId).isPresent();
     }
 
-    @Transactional
     public QrCodeResponse generateForMilkBatch(Long milkBatchId) {
+        return qrCodeRepository
+                .findByMilkBatchId(milkBatchId)
+                .map(this::buildResponse)
+                .orElseGet(() -> createQrCode(milkBatchId));
+    }
+
+    // Two near-simultaneous requests can both pass the findByMilkBatchId check; the loser recovers
+    // from the unique-constraint violation by re-fetching what the winner just created.
+    private QrCodeResponse createQrCode(Long milkBatchId) {
         MilkBatch milkBatch = milkBatchService.getById(milkBatchId);
-
-        QrCode qrCode =
-                qrCodeRepository
-                        .findByMilkBatchId(milkBatchId)
-                        .orElseGet(
-                                () ->
-                                        qrCodeRepository.save(
-                                                QrCode.builder()
-                                                        .token(generateUniqueToken())
-                                                        .milkBatch(milkBatch)
-                                                        .build()));
-
-        return buildResponse(qrCode);
+        try {
+            QrCode created =
+                    qrCodeRepository.saveAndFlush(
+                            QrCode.builder().token(generateUniqueToken()).milkBatch(milkBatch).build());
+            return buildResponse(created);
+        } catch (DataIntegrityViolationException ex) {
+            return qrCodeRepository
+                    .findByMilkBatchId(milkBatchId)
+                    .map(this::buildResponse)
+                    .orElseThrow(() -> ex);
+        }
     }
 
     private String generateUniqueToken() {

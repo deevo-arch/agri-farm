@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getLivestockByFarm } from '../api/livestockApi'
 import { resolveErrorMessage } from '../api/errors'
+import EmptyState from '../components/EmptyState'
 import ErrorState from '../components/ErrorState'
 import LoadingState from '../components/LoadingState'
 import StatusBadge from '../components/StatusBadge'
@@ -81,10 +82,15 @@ function FarmerDashboard({ name }) {
       {!farmsLoading && farmsError && <ErrorState message={farmsError} />}
 
       {!farmsLoading && !farmsError && farms.length === 0 && (
-        <div className="card">
-          <h2>No farm registered yet</h2>
-          <p>A farm must be set up before you can register livestock or milk batches.</p>
-        </div>
+        <EmptyState
+          title="No farm registered yet"
+          message="Create your farm to start managing livestock and milk batches."
+          action={
+            <Link to="/farms/new" className="btn btn--primary">
+              + Create Farm
+            </Link>
+          }
+        />
       )}
 
       {!farmsLoading && !farmsError && primaryFarm && (
@@ -98,6 +104,9 @@ function FarmerDashboard({ name }) {
             {farms.length > 1 && (
               <p className="card__note">Showing your primary farm ({farms.length} total).</p>
             )}
+            <Link to="/farm" className="btn btn--ghost">
+              View Farm
+            </Link>
           </article>
 
           <article className="card">
@@ -119,7 +128,6 @@ function FarmerDashboard({ name }) {
           <article className="card">
             <div className="card__header">
               <h2>Milk Batches</h2>
-              <StatusBadge tone="neutral">Coming soon</StatusBadge>
             </div>
             <p>Record milk collection and view eligibility.</p>
             <Link to="/milk-batches" className="btn btn--ghost">

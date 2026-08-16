@@ -5,6 +5,7 @@ import Logo from './Logo'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/farm', label: 'Farm' },
   { to: '/livestock', label: 'Livestock' },
   { to: '/treatments', label: 'Treatments' },
   { to: '/milk-batches', label: 'Milk Batches' },

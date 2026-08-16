@@ -71,6 +71,34 @@ class FarmControllerTest {
     }
 
     @Test
+    void createFarm_ignoresClientSuppliedOwnerId_usesAuthenticatedCaller() throws Exception {
+        UserResponse farmerA =
+                userService.createUser(
+                        new UserCreateRequest("Farmer A", uniqueEmail("farmer-a"), "pass1234", Role.FARMER));
+        UserResponse farmerB =
+                userService.createUser(
+                        new UserCreateRequest("Farmer B", uniqueEmail("farmer-b"), "pass1234", Role.FARMER));
+
+        // Farmer A submits a farm but claims Farmer B as the owner.
+        mockMvc
+                .perform(
+                        post("/api/farms")
+                                .header(HttpHeaders.AUTHORIZATION, authHeaderFor(farmerA))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(
+                                                new FarmCreateRequest("Spoofed Farm", "Nowhere", farmerB.id()))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.ownerId").value(farmerA.id()))
+                .andExpect(jsonPath("$.ownerName").value("Farmer A"));
+
+        mockMvc
+                .perform(get("/api/farms/mine").header(HttpHeaders.AUTHORIZATION, authHeaderFor(farmerB)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
     void getMyFarms_returnsEmptyListWhenNoFarmsOwned() throws Exception {
         UserResponse farmerWithNoFarm =
                 userService.createUser(

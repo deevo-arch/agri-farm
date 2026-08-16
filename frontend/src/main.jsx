@@ -8,6 +8,7 @@ import './styles/layout.css'
 import './styles/auth.css'
 import './styles/dashboard.css'
 import './styles/data.css'
+import './styles/publicTrace.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

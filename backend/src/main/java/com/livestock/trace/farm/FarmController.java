@@ -27,8 +27,13 @@ public class FarmController {
     private final LivestockService livestockService;
 
     @PostMapping
-    public ResponseEntity<FarmResponse> createFarm(@Valid @RequestBody FarmCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(farmService.createFarm(request));
+    public ResponseEntity<FarmResponse> createFarm(
+            @Valid @RequestBody FarmCreateRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+        // Ownership is always the authenticated caller; any ownerId in the request body is ignored.
+        FarmCreateRequest ownedRequest =
+                new FarmCreateRequest(request.name(), request.location(), currentUser.id());
+        return ResponseEntity.status(HttpStatus.CREATED).body(farmService.createFarm(ownedRequest));
     }
 
     @GetMapping("/mine")

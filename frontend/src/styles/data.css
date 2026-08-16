@@ -99,6 +99,90 @@
 .data-table__actions {
   text-align: right;
 }
+.action-group {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Quick-link rows */
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Simple tag list (e.g. batch livestock) */
+.tag-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag-list li {
+  background: var(--color-primary-tint);
+  color: var(--color-primary-dark);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Checkbox list (e.g. animal multi-select) */
+.checkbox-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.checkbox-list__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 400;
+  cursor: pointer;
+}
+.checkbox-list__item:last-child {
+  border-bottom: none;
+}
+.checkbox-list__item:hover {
+  background: var(--color-primary-tint);
+}
+.checkbox-list__item input {
+  flex-shrink: 0;
+}
+.checkbox-list__item span {
+  flex: 1;
+}
+
+/* QR display */
+.qr-card {
+  text-align: center;
+}
+.qr-image {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  margin: 0 auto 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+.qr-card__token {
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+.qr-card__token code {
+  background: var(--color-primary-tint);
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: var(--color-primary-dark);
+}
 
 @media (max-width: 720px) {
   .data-table thead {
