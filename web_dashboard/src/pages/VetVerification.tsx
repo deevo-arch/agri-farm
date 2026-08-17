@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, FileText, CheckCircle, XCircle, Eye, Download, MapPin, Phone, Mail, Award, Clock, ShieldCheck, RefreshCw, UploadCloud, Sparkles } from "lucide-react";
 import Stepper, { Step } from "../components/Stepper";
 import { useAuthContext } from "../context/AuthContext";
 import { CustomToast, ToastConfig } from "../components/CustomToast";
+import { verificationAPI } from "../services/api";
 import "../styles/VetVerification.css";
 
 export default function VetVerification() {
@@ -12,38 +13,59 @@ export default function VetVerification() {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedVet, setSelectedVet] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [pendingVets, setPendingVets] = useState<any[]>([]);
+  const [isLoadingList, setIsLoadingList] = useState(false);
 
-  const storageKey = `amu_vet_verif_${user?.email || 'default'}`;
+  const [isEditing, setIsEditing] = useState<boolean>(true);
+  const [submittedStatus, setSubmittedStatus] = useState<"Verified" | "Pending" | "Not Verified">("Not Verified");
 
-  // Load stored state or check if brand new account
-  const storedVerif = React.useMemo(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
+  // Fetch current user's verification status from Supabase on mount
+  useEffect(() => {
+    if (currentRole === 'vet') {
+      verificationAPI.getMyStatus().then((res) => {
+        if (res && res.status) {
+          if (res.status === 'approved') {
+            setSubmittedStatus('Verified');
+            setIsEditing(false);
+          } else if (res.status === 'pending') {
+            setSubmittedStatus('Pending');
+            setIsEditing(false);
+          }
+        }
+      }).catch(() => {});
     }
-  }, [storageKey]);
+  }, [currentRole]);
 
-  const [isEditing, setIsEditing] = useState<boolean>(!storedVerif);
-  const [submittedStatus, setSubmittedStatus] = useState<"Verified" | "Pending" | "Not Verified">(
-    storedVerif?.status || (user?.email?.includes('demo') || user?.email?.includes('vet') ? "Verified" : "Not Verified")
-  );
+  // Fetch pending requests for admin authority
+  const loadPendingRequests = () => {
+    if (currentRole === 'authority') {
+      setIsLoadingList(true);
+      verificationAPI.getPending('vet').then((data) => {
+        setPendingVets(data || []);
+      }).catch(() => {
+        setPendingVets([]);
+      }).finally(() => setIsLoadingList(false));
+    }
+  };
+
+  useEffect(() => {
+    loadPendingRequests();
+  }, [currentRole]);
 
   // Form state for Vet self-verification stepper
   const [formData, setFormData] = useState({
-    name: storedVerif?.name || user?.fullName || "Dr. New Veterinarian",
-    email: user?.email || "vet@amu.gov",
-    phone: storedVerif?.phone || "+91 ",
-    license: storedVerif?.license || "MH-VET-",
-    clinic: storedVerif?.clinic || (user?.fullName ? `${user.fullName}'s Clinic` : "My Vet Clinic"),
-    district: storedVerif?.district || "Pune",
-    location: storedVerif?.location || "",
-    specialization: storedVerif?.specialization || "Large Animals & Livestock",
-    experience: storedVerif?.experience || "",
-    degreeDoc: storedVerif?.degreeDoc || "degree_cert.pdf",
-    councilDoc: storedVerif?.councilDoc || "council_reg.pdf",
-    clinicDoc: storedVerif?.clinicDoc || "clinic_license.pdf"
+    name: user?.fullName || "",
+    email: user?.email || "",
+    phone: "+91 ",
+    license: "MH-VET-",
+    clinic: "",
+    district: "Pune",
+    location: "",
+    specialization: "Large Animals & Livestock",
+    experience: "",
+    degreeDoc: "degree_cert.pdf",
+    councilDoc: "council_reg.pdf",
+    clinicDoc: "clinic_license.pdf"
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -51,58 +73,73 @@ export default function VetVerification() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingField(fieldName);
+    try {
+      const res = await verificationAPI.uploadDocument(file, 'kyc-vet');
+      setFormData(prev => ({ ...prev, [fieldName]: res.url || file.name }));
+      setToast({
+        type: 'success',
+        title: 'Document Uploaded',
+        message: `${file.name} saved to Supabase kyc-vet bucket!`
+      });
+    } catch (err: any) {
+      setFormData(prev => ({ ...prev, [fieldName]: file.name }));
+      setToast({
+        type: 'success',
+        title: 'Document Attached',
+        message: `${file.name} attached for council verification.`
+      });
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
   const [toast, setToast] = useState<ToastConfig | null>(null);
   const [rejectingVet, setRejectingVet] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const handleFinalSubmission = () => {
-    const payload = { ...formData, status: "Pending" };
+  const handleFinalSubmission = async () => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(payload));
-    } catch (e) {
-      console.error("Error saving vet verification state", e);
+      await verificationAPI.submit(formData);
+      setSubmittedStatus("Pending");
+      setIsEditing(false);
+      setToast({
+        type: 'success',
+        title: 'License Submitted',
+        message: 'Your veterinary license registration has been submitted to Supabase backend for council verification!'
+      });
+    } catch (e: any) {
+      setToast({
+        type: 'error',
+        title: 'Submission Failed',
+        message: e.message || 'Failed to submit verification request.'
+      });
     }
-    setSubmittedStatus("Pending");
-    setIsEditing(false);
-    setToast({
-      type: 'success',
-      title: 'License Submitted',
-      message: 'Your veterinary license registration has been submitted to Authority Admin for council verification!'
-    });
   };
 
-  // Sample pending vet data for Admin view
-  const pendingVets = [
-    {
-      id: "VET-T001",
-      name: "Dr. Ananya Kulkarni",
-      license: "MH-VET-892133",
-      clinic: "VetCare Pune",
-      email: "ananya.kulkarni@vetcare.com",
-      phone: "+91 98200 11223",
-      location: "Shivajinagar, Pune",
-      district: "Pune",
-      status: "Pending",
-      appliedDate: "10/12/2025",
-      specialization: "Large Animals",
-      experience: "8 years",
-      documents: [
-        { name: "Veterinary Degree Certificate", status: "Uploaded", size: "1.2 MB" },
-        { name: "State Council Registration", status: "Uploaded", size: "850 KB" },
-        { name: "Clinic License", status: "Uploaded", size: "650 KB" },
-        { name: "Identity Proof (Aadhaar)", status: "Uploaded", size: "420 KB" }
-      ]
+  const handleApprove = async (vet: any) => {
+    try {
+      await verificationAPI.approve(vet.id);
+      loadPendingRequests();
+      setToast({
+        type: 'success',
+        title: 'Vet Verified',
+        message: `${vet.form_data?.name || vet.profiles?.full_name || 'Veterinarian'} has been approved in Supabase!`
+      });
+    } catch (e: any) {
+      setToast({
+        type: 'error',
+        title: 'Approval Failed',
+        message: e.message || 'Failed to approve.'
+      });
     }
-  ];
-
-  const handleApprove = (vet: any) => {
-    setToast({
-      type: 'success',
-      title: 'License Approved',
-      message: `Approved state veterinary license for ${vet.name}.`
-    });
-    setShowDetailModal(false);
   };
+
 
   const handleConfirmReject = () => {
     if (rejectingVet) {
@@ -122,12 +159,60 @@ export default function VetVerification() {
     setShowDetailModal(true);
   };
 
+  const [showGuideOverlay, setShowGuideOverlay] = useState(true);
+
   // ==========================================
   // VETERINARIAN SELF-VERIFICATION VIEW
   // ==========================================
   if (currentRole === 'vet') {
     return (
       <div className="vet-verification-page">
+        {/* INTERACTIVE ONBOARDING GUIDE OVERLAY FOR NEW VETS */}
+        {showGuideOverlay && (
+          <div className="onboarding-overlay-card neu-card fade-in">
+            <div className="onboarding-header">
+              <div className="onboarding-title-badge">
+                <Sparkles size={20} className="text-emerald" />
+                <div>
+                  <h4>Welcome to Veterinary Council Verification</h4>
+                  <p>Follow these 4 simple steps to verify your medical license & clinic credentials</p>
+                </div>
+              </div>
+              <button className="neu-btn close-guide-btn" onClick={() => setShowGuideOverlay(false)}>✕ Close Guide</button>
+            </div>
+            <div className="onboarding-steps-grid">
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">1</span>
+                <div>
+                  <strong>Doctor Info</strong>
+                  <p>Enter your full legal name, phone number, and email</p>
+                </div>
+              </div>
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">2</span>
+                <div>
+                  <strong>State License</strong>
+                  <p>Provide your State Veterinary Council license registration ID</p>
+                </div>
+              </div>
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">3</span>
+                <div>
+                  <strong>Clinic & Practice</strong>
+                  <p>Specify clinic location, district, and medical specialization</p>
+                </div>
+              </div>
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">4</span>
+                <div>
+                  <strong>Council Approval</strong>
+                  <p>Submit for official verification by Government Health Council</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="page-header">
           <div>
             <h1 className="page-title">🩺 Veterinary Profile & License Verification</h1>
@@ -141,14 +226,20 @@ export default function VetVerification() {
             <div className="status-badge-icon">
               {submittedStatus === "Verified" ? (
                 <ShieldCheck size={32} color="#10b981" />
+              ) : submittedStatus === "Pending" ? (
+                <Clock size={32} color="#d97706" />
               ) : (
-                <Clock size={32} color="#fbbf24" />
+                <XCircle size={32} color="#dc2626" />
               )}
             </div>
             <div>
               <div className="status-pills">
-                <span className={`status-pill ${submittedStatus === "Verified" ? "verified" : "pending"}`}>
-                  {submittedStatus === "Verified" ? "LICENSED VETERINARIAN" : "PENDING AUTHORITY APPROVAL"}
+                <span className={`status-pill ${submittedStatus === "Verified" ? "verified" : submittedStatus === "Pending" ? "pending" : "unverified"}`}>
+                  {submittedStatus === "Verified"
+                    ? "LICENSED VETERINARIAN"
+                    : submittedStatus === "Pending"
+                    ? "PENDING AUTHORITY APPROVAL"
+                    : "LICENSE VERIFICATION REQUIRED"}
                 </span>
                 <span className="district-pill">📜 License: {formData.license}</span>
               </div>
@@ -287,37 +378,54 @@ export default function VetVerification() {
                   </div>
                 </div>
               </Step>
-
               <Step>
                 <div className="step-inner-form">
                   <h4 className="step-title">Step 3: Council License & Degree Certificates</h4>
                   <div className="doc-upload-grid">
-                    <div className="doc-upload-box">
-                      <UploadCloud size={24} color="#8b5cf6" />
+                    <label className="doc-upload-box cursor-pointer">
+                      <UploadCloud size={24} color="#2d8f4e" />
                       <div>
                         <h5>Veterinary Degree (B.V.Sc / M.V.Sc)</h5>
-                        <p className="file-name">{formData.degreeDoc}</p>
+                        <p className="file-name">{uploadingField === 'degreeDoc' ? 'Uploading to kyc-vet...' : formData.degreeDoc}</p>
                       </div>
-                      <span className="upload-badge">Uploaded</span>
-                    </div>
+                      <span className="upload-badge">{formData.degreeDoc ? 'Attached ✅' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'degreeDoc')}
+                      />
+                    </label>
 
-                    <div className="doc-upload-box">
-                      <UploadCloud size={24} color="#8b5cf6" />
+                    <label className="doc-upload-box cursor-pointer">
+                      <UploadCloud size={24} color="#2d8f4e" />
                       <div>
-                        <h5>State Veterinary Council Certificate</h5>
-                        <p className="file-name">{formData.councilDoc}</p>
+                        <h5>State Council Registration Badge</h5>
+                        <p className="file-name">{uploadingField === 'councilDoc' ? 'Uploading to kyc-vet...' : formData.councilDoc}</p>
                       </div>
-                      <span className="upload-badge">Uploaded</span>
-                    </div>
+                      <span className="upload-badge">{formData.councilDoc ? 'Attached ✅' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'councilDoc')}
+                      />
+                    </label>
 
-                    <div className="doc-upload-box">
-                      <UploadCloud size={24} color="#8b5cf6" />
+                    <label className="doc-upload-box cursor-pointer">
+                      <UploadCloud size={24} color="#2d8f4e" />
                       <div>
-                        <h5>Clinic License Certificate</h5>
-                        <p className="file-name">{formData.clinicDoc}</p>
+                        <h5>Clinic Establishment License</h5>
+                        <p className="file-name">{uploadingField === 'clinicDoc' ? 'Uploading to kyc-vet...' : formData.clinicDoc}</p>
                       </div>
-                      <span className="upload-badge">Uploaded</span>
-                    </div>
+                      <span className="upload-badge">{formData.clinicDoc ? 'Attached ✅' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'clinicDoc')}
+                      />
+                    </label>
                   </div>
                 </div>
               </Step>

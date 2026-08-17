@@ -1,14 +1,14 @@
 .card-spotlight {
   position: relative;
   border-radius: 20px;
-  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.12));
-  background-color: var(--bg-card, #13111c);
+  border: 1px solid var(--border-light, rgba(45, 143, 78, 0.18));
+  background-color: var(--bg-card, #f0f5ed);
   padding: 24px;
   overflow: hidden;
   --mouse-x: 50%;
   --mouse-y: 50%;
-  --spotlight-color: rgba(139, 92, 246, 0.25);
-  box-shadow: var(--neu-shadow-raised, -6px -6px 14px #1c182b, 6px 6px 14px #050409);
+  --spotlight-color: rgba(45, 143, 78, 0.25);
+  box-shadow: var(--neu-shadow-raised);
   transition: box-shadow 0.3s ease;
 }
 

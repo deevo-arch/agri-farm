@@ -4,7 +4,7 @@ import './MagicBento.css';
 
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
-const DEFAULT_GLOW_COLOR = '139, 92, 255';
+const DEFAULT_GLOW_COLOR = '45, 143, 78';
 const MOBILE_BREAKPOINT = 768;
 
 export interface BentoCardData {
@@ -31,37 +31,37 @@ export interface MagicBentoProps {
 
 const defaultCardData: BentoCardData[] = [
   {
-    color: '#13111c',
+    color: '#f0f5ed',
     title: 'Adaptation & Innovation',
     description: 'Advanced systems adapting to evolving agricultural needs with innovative monitoring solutions',
     label: 'Innovation'
   },
   {
-    color: '#13111c',
+    color: '#f0f5ed',
     title: 'Productivity & Efficiency',
     description: 'Streamlined processes that enhance farm productivity while maintaining compliance standards',
     label: 'Efficiency'
   },
   {
-    color: '#13111c',
+    color: '#f0f5ed',
     title: 'Continuous Improvement',
     description: 'Ongoing optimization of monitoring systems for better outcomes and sustainable practices',
     label: 'Optimization'
   },
   {
-    color: '#13111c',
+    color: '#f0f5ed',
     title: 'Data Acquisition',
     description: 'Comprehensive data collection and analysis for informed decision-making in antimicrobial usage',
     label: 'Insights'
   },
   {
-    color: '#13111c',
+    color: '#f0f5ed',
     title: 'Performance Metrics',
     description: 'Detailed analytics and reporting to measure and improve farm management efficiency',
     label: 'Analytics'
   },
   {
-    color: '#13111c',
+    color: '#f0f5ed',
     title: 'Sustainable Growth',
     description: 'Promoting sustainable agricultural practices through responsible antimicrobial management',
     label: 'Sustainability'

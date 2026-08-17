@@ -31,7 +31,7 @@ import ParticleText from "../components/ParticleText";
 import ProfileRoleModal from "../components/ProfileRoleModal";
 import { CustomToast, ToastConfig } from "../components/CustomToast";
 import BorderGlow from "../components/BorderGlow";
-import Topography from "../components/Topography";
+import Scanner from "../components/Scanner";
 
 import "../styles/SidebarLayout.css";
 
@@ -107,29 +107,34 @@ export default function SidebarLayout() {
 
   return (
     <div className="layout">
-      {/* REACT BITS TOPOGRAPHY WEBGL SHADER BACKGROUND FOR ALL AUTHENTICATED PAGES */}
-      <div className="topography-bg-layer">
-        <Topography
-          lowColor="#5227FF"
-          midColor="#8b5cf6"
-          highColor="#c084fc"
-          speed={0.25}
-          morphAmount={2.5}
-          morphSpeed={0.05}
-          bands={2.5}
-          thickness={0.012}
-          scale={1.0}
-          pixelSize={1.0}
-          glow={0.55}
-          colorMode="elevation"
-          contrast={2.8}
-          brightness={1.1}
-          fillBands={false}
-          opacity={0.9}
+      {/* REACT BITS SCANNER WEBGL SHADER BACKGROUND FOR ALL AUTHENTICATED PAGES */}
+      <div className="scanner-bg-layer">
+        <Scanner
+          color1="#e8f5e9"
+          color2="#4ade80"
+          color3="#1a6b38"
+          speed={0.4}
+          sweepSpeed={0.2}
+          sweepWidth={2.0}
+          sweepFalloff={8}
+          scale={1.5}
+          frequency={1.5}
+          ripple={0.15}
+          bandDensity={8}
+          lineSharpness={5.0}
+          glow={0.15}
+          scanDirection="vertical"
+          colorSpread={0.5}
+          brightness={1.2}
+          contrast={1.1}
+          softness={1.5}
+          vignette={0.2}
+          scanline={true}
           grain={true}
-          grainIntensity={0.04}
+          grainIntensity={0.03}
+          opacity={0.8}
           mouseInteraction={true}
-          mouseRadius={0.3}
+          mouseRadius={0.6}
           mouseStrength={0.4}
         />
       </div>
@@ -143,8 +148,8 @@ export default function SidebarLayout() {
               text="Agri Farm"
               particleSize={1.8}
               density={3}
-              color="#ffffff"
-              highlightColor="#8b5cf6"
+              color="#1a2e1a"
+              highlightColor="#2d8f4e"
               scatter={100}
               gatherDuration={1200}
               stagger={250}
@@ -173,11 +178,11 @@ export default function SidebarLayout() {
                 className="sidebar-initials-avatar"
                 style={{
                   background: [
-                    'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+                    'linear-gradient(135deg, #2d8f4e 0%, #1a6b38 100%)',
                     'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-                    'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
-                    'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
-                    'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+                    'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
+                    'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                    'linear-gradient(135deg, #059669 0%, #065f46 100%)'
                   ][sidebarAvatarIndex % 5]
                 }}
               >
@@ -191,9 +196,7 @@ export default function SidebarLayout() {
             </div>
           </div>
 
-          <div className="account-bound-tag">
-            <span>Bound Role: <strong>{accountBadgeInfo.emoji} {accountBadgeInfo.short}</strong></span>
-          </div>
+
 
           {/* NEUMORPHIC ROLE SWITCHER CONTROL - ADMIN ONLY */}
           {user?.role === 'authority' && (
@@ -386,11 +389,11 @@ export default function SidebarLayout() {
         <>
           <div className="profile-modal-backdrop" onClick={() => setIsProfileModalOpen(false)} />
           <div className="profile-changer-modal-wrapper">
-            <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={20}>
+            <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={20}>
               <div className="profile-changer-modal neu-card">
                 <div className="profile-modal-header">
                   <div className="flex items-center gap-2">
-                    <Settings size={20} className="text-violet-400" />
+                    <Settings size={20} className="text-green-600" />
                     <h3>Change Account Role Type</h3>
                   </div>
                   <button
@@ -409,7 +412,7 @@ export default function SidebarLayout() {
                 </p>
 
                 <div className="account-type-cards">
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={12}>
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
                     <div
                       className={`account-card neu-btn ${targetAccountRole === 'farmer' ? 'selected' : ''}`}
                       onClick={() => setTargetAccountRole('farmer')}
@@ -423,7 +426,7 @@ export default function SidebarLayout() {
                     </div>
                   </BorderGlow>
 
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={12}>
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
                     <div
                       className={`account-card neu-btn ${targetAccountRole === 'vet' ? 'selected' : ''}`}
                       onClick={() => setTargetAccountRole('vet')}
@@ -433,11 +436,11 @@ export default function SidebarLayout() {
                         <h4>Veterinarian Account</h4>
                         <p>Access prescription verifications & vet logs</p>
                       </div>
-                      {targetAccountRole === 'vet' && <CheckCircle2 size={18} className="text-violet-400" />}
+                      {targetAccountRole === 'vet' && <CheckCircle2 size={18} className="text-emerald-600" />}
                     </div>
                   </BorderGlow>
 
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={12}>
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
                     <div
                       className={`account-card neu-btn ${targetAccountRole === 'authority' ? 'selected' : ''}`}
                       onClick={() => setTargetAccountRole('authority')}
@@ -447,14 +450,14 @@ export default function SidebarLayout() {
                         <h4>Admin Account</h4>
                         <p>Full administrative oversight & compliance metrics</p>
                       </div>
-                      {targetAccountRole === 'authority' && <CheckCircle2 size={18} className="text-purple-400" />}
+                      {targetAccountRole === 'authority' && <CheckCircle2 size={18} className="text-emerald-600" />}
                     </div>
                   </BorderGlow>
                 </div>
 
                 {targetAccountRole === 'authority' && user?.role !== 'authority' && (
-                  <div className="admin-code-box neu-inset" style={{ marginTop: '16px', padding: '14px', borderRadius: '14px', background: '#0d0b17', border: '1px solid rgba(139, 92, 246, 0.35)' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 800, color: '#c084fc', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                  <div className="admin-code-box neu-inset" style={{ marginTop: '16px', padding: '14px', borderRadius: '14px', background: '#e8f0e4', border: '1px solid rgba(45, 143, 78, 0.35)' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 800, color: '#2d8f4e', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
                       <Key size={15} /> 12-Digit Admin Invite Code (Required for Admin Upgrade)
                     </label>
                     <input
@@ -463,9 +466,9 @@ export default function SidebarLayout() {
                       placeholder="e.g. 8921-4401-9012"
                       value={adminCodeInput}
                       onChange={e => setAdminCodeInput(e.target.value)}
-                      style={{ width: '100%', padding: '10px 14px', fontSize: '14px', color: '#ffffff', borderRadius: '10px', background: '#13111c', border: '1px solid rgba(139,92,246,0.3)', boxSizing: 'border-box' }}
+                      style={{ width: '100%', padding: '10px 14px', fontSize: '14px', color: '#1a2e1a', borderRadius: '10px', background: '#f0f5ed', border: '1px solid rgba(45,143,78,0.3)', boxSizing: 'border-box' }}
                     />
-                    <p style={{ fontSize: '11px', color: '#94a3b8', margin: '6px 0 0', lineHeight: '1.4' }}>
+                    <p style={{ fontSize: '11px', color: '#5a7a5a', margin: '6px 0 0', lineHeight: '1.4' }}>
                       Obtain an active 12-digit invite code from an ongoing Admin. Codes are valid for 5 minutes after generation.
                     </p>
                   </div>

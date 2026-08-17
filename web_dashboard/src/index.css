@@ -1,45 +1,45 @@
 /* --------------------------------------------- */
-/* ✅ BLACK, GREY, VIOLET NEUMORPHIC SYSTEM     */
+/* ✅ WHITE & GREEN NEUMORPHIC AGRICULTURE THEME */
 /* --------------------------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Core Obsidian Black, Slate Grey, Electric Violet Theme */
-  --bg-main: #09090f;
-  --bg-card: #13111c;
-  --bg-accent: #8b5cf6;
-  --bg-accent-hover: #7c3aed;
-  
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  /* Core White & Green Agriculture Theme */
+  --bg-main: #e8f0e4;
+  --bg-card: #f0f5ed;
+  --bg-accent: #2d8f4e;
+  --bg-accent-hover: #236b3c;
 
-  --border-light: rgba(139, 92, 246, 0.18);
+  --text-main: #1a2e1a;
+  --text-muted: #5a7a5a;
+
+  --border-light: rgba(45, 143, 78, 0.18);
 
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
 
-  /* Neumorphic Shadow Variables (Black-Violet Obsidian) */
-  --neu-shadow-raised: -6px -6px 14px #1c182b, 6px 6px 14px #050409;
-  --neu-shadow-raised-sm: -4px -4px 10px #1c182b, 4px 4px 10px #050409;
-  --neu-shadow-raised-hover: -8px -8px 18px #221e36, 8px 8px 18px #030206;
-  --neu-shadow-inset: inset 3px 3px 6px #050409, inset -3px -3px 6px #1c182b;
-  --neu-shadow-inset-sm: inset 2px 2px 4px #050409, inset -2px -2px 4px #1c182b;
-  --neu-shadow-pressed: inset 3px 3px 6px #030206, inset -3px -3px 6px #221e36;
-  --neu-glow-accent: 0 0 22px rgba(139, 92, 246, 0.55);
+  /* Neumorphic Shadow Variables (Light Green Theme) */
+  --neu-shadow-raised: 8px 8px 16px #c5d4c0, -8px -8px 16px #ffffff;
+  --neu-shadow-raised-sm: 5px 5px 10px #c5d4c0, -5px -5px 10px #ffffff;
+  --neu-shadow-raised-hover: 10px 10px 20px #b8c9b3, -10px -10px 20px #ffffff;
+  --neu-shadow-inset: inset 4px 4px 8px #c5d4c0, inset -4px -4px 8px #ffffff;
+  --neu-shadow-inset-sm: inset 2px 2px 5px #c5d4c0, inset -2px -2px 5px #ffffff;
+  --neu-shadow-pressed: inset 5px 5px 10px #b8c9b3, inset -5px -5px 10px #ffffff;
+  --neu-glow-accent: 0 0 22px rgba(45, 143, 78, 0.45);
 
-  --card-bg: #13111c;
+  --card-bg: #f0f5ed;
   --radius-main: 16px;
   --radius-sm: 10px;
 }
 
 [data-theme="light"], [data-theme="dark"] {
-  --bg-main: #09090f;
-  --bg-card: #13111c;
-  --bg-accent: #8b5cf6;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --card-bg: #13111c;
+  --bg-main: #e8f0e4;
+  --bg-card: #f0f5ed;
+  --bg-accent: #2d8f4e;
+  --text-main: #1a2e1a;
+  --text-muted: #5a7a5a;
+  --card-bg: #f0f5ed;
 }
 
 /* Base transitions & reset */
@@ -71,9 +71,9 @@ body {
 /* ✅ NEUMORPHIC UTILITIES                       */
 /* --------------------------------------------- */
 
-/* Raised Neumorphic Surface - 100% SOLID OPAQUE (0% TRANSPARENCY) */
+/* Raised Neumorphic Surface */
 .neu-card, .stat-card, .chart-card, .dashboard-card, .form-card, .table-card, .card, .guide-content-section, .doc-card, .user-graphic-card {
-  background: #13111c !important;
+  background: var(--bg-card) !important;
   opacity: 1 !important;
   border-radius: var(--radius-main);
   box-shadow: var(--neu-shadow-raised);
@@ -92,11 +92,18 @@ body {
   border-radius: var(--radius-sm);
   border: none;
   color: var(--text-main);
-  outline: none;
+  outline: none !important;
 }
 
-.neu-inset:focus, .form-input:focus, .search input:focus, .filter-select:focus {
-  box-shadow: var(--neu-shadow-inset), 0 0 0 2px rgba(139, 92, 246, 0.5);
+.neu-inset:focus, .form-input:focus, .search input:focus, .filter-select:focus,
+input:focus, textarea:focus, select:focus, button:focus {
+  outline: none !important;
+  box-shadow: var(--neu-shadow-inset) !important;
+  border-color: transparent !important;
+}
+
+*:focus, *:focus-visible {
+  outline: none !important;
 }
 
 /* Neumorphic Buttons */
@@ -126,11 +133,11 @@ body {
   transform: translateY(0);
 }
 
-/* Neumorphic Primary Glowing Violet Accent Button */
+/* Neumorphic Primary Glowing Green Accent Button */
 .btn-primary-neu {
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  background: linear-gradient(135deg, #2d8f4e, #1a6b38);
   color: #ffffff;
-  box-shadow: -4px -4px 10px rgba(139, 92, 246, 0.3), 4px 4px 12px rgba(0, 0, 0, 0.6);
+  box-shadow: -4px -4px 10px rgba(45, 143, 78, 0.25), 4px 4px 12px rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-sm);
   border: none;
   font-weight: 700;
@@ -139,7 +146,7 @@ body {
 }
 
 .btn-primary-neu:hover {
-  box-shadow: -6px -6px 14px rgba(139, 92, 246, 0.4), 6px 6px 16px rgba(0, 0, 0, 0.8), var(--neu-glow-accent);
+  box-shadow: -6px -6px 14px rgba(45, 143, 78, 0.35), 6px 6px 16px rgba(0, 0, 0, 0.2), var(--neu-glow-accent);
   transform: translateY(-2px);
 }
 
@@ -158,7 +165,7 @@ body {
   background: var(--bg-main);
 }
 
-/* Custom Scrollbar for Content */
+/* Custom Scrollbar */
 .content::-webkit-scrollbar {
   width: 8px;
 }
@@ -166,7 +173,7 @@ body {
   background: var(--bg-main);
 }
 .content::-webkit-scrollbar-thumb {
-  background: #262238;
+  background: #b8c9b3;
   border-radius: 10px;
   box-shadow: var(--neu-shadow-inset-sm);
 }
@@ -179,28 +186,44 @@ body {
   margin-bottom: 28px;
 }
 
-.page-head h2 {
-  margin: 0 0 6px 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #f8fafc, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.page-title,
+.page-head h1,
+.page-head h2,
+.page-header h1,
+.page-header h2 {
+  font-size: 2.2rem !important;
+  font-weight: 800 !important;
+  color: #1a2e1a !important;
+  letter-spacing: -0.6px !important;
+  background: linear-gradient(135deg, #1a2e1a 0%, #2d8f4e 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  opacity: 1 !important;
+  display: block !important;
+  margin-bottom: 6px !important;
 }
 
-.page-head p {
+.page-subtitle,
+.page-head p,
+.page-header p {
   margin: 0;
-  color: var(--text-muted);
-  font-size: 14px;
+  color: #5a7a5a !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
 }
 
-/* Neumorphic Tables */
-.table-card {
-  background: var(--bg-card);
+/* Neumorphic Tables with Solid Opaque Background for Text Readability */
+.table-card,
+.table-container,
+.vet-table-container,
+.verification-table-container {
+  background: #f0f5ed !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
   padding: 16px;
   border-radius: var(--radius-main);
-  box-shadow: var(--neu-shadow-raised);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
   overflow: hidden;
 }
 
@@ -208,21 +231,22 @@ body {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 8px;
+  background: #f0f5ed !important;
 }
 
 .table thead th {
   padding: 14px 18px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--text-muted);
+  color: #1a2e1a;
   border: none;
-  background: transparent;
+  background: #e8f0e4 !important;
 }
 
 .table tbody tr {
-  background: var(--bg-card);
+  background: #f0f5ed !important;
   box-shadow: var(--neu-shadow-raised-sm);
   border-radius: var(--radius-sm);
   transition: all 0.2s ease;
@@ -236,8 +260,8 @@ body {
 .table td {
   padding: 14px 18px;
   color: var(--text-main);
-  border-top: 1px solid rgba(139, 92, 246, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(45, 143, 78, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .table td:first-child {
@@ -264,24 +288,24 @@ body {
 
 .badge-pending, .status-pending {
   background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  color: #b45309;
 }
 
 .badge-verified, .status-verified, .status-healthy {
   background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  color: #047857;
 }
 
 .badge-rejected, .status-rejected, .status-treatment {
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: #dc2626;
 }
 
 /* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(9, 9, 15, 0.8);
+  background: rgba(232, 240, 228, 0.85);
   backdrop-filter: blur(8px);
   display: grid;
   place-items: center;

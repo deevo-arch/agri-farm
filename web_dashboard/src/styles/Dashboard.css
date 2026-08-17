@@ -42,12 +42,12 @@
   gap: 8px;
   padding: 5px 14px;
   border-radius: 20px;
-  background: #13111c;
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: #f0f5ed;
+  border: 1px solid rgba(45, 143, 78, 0.35);
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text-main);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 10px rgba(139, 92, 246, 0.2);
+  font-weight: 700;
+  color: #1a2e1a;
+  box-shadow: var(--neu-shadow-raised-sm);
   margin-top: 8px;
   margin-left: 10px;
 }
@@ -58,9 +58,9 @@
   gap: 4px;
   padding: 3px 9px;
   border-radius: 12px;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.5);
-  color: #c084fc;
+  background: rgba(45, 143, 78, 0.15);
+  border: 1px solid rgba(45, 143, 78, 0.5);
+  color: #2d8f4e;
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
@@ -69,9 +69,9 @@
 }
 
 .api-retry-inline-btn:hover {
-  background: rgba(139, 92, 246, 0.4);
+  background: #2d8f4e;
   color: #ffffff;
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 12px rgba(45, 143, 78, 0.4);
   transform: translateY(-1px);
 }
 
@@ -425,8 +425,8 @@
   padding: 1.8rem 2.2rem;
   border-radius: 26px;
   margin-bottom: 2.2rem;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(19, 17, 28, 0.95) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: #ffffff;
+  border: 1px solid rgba(45, 143, 78, 0.25);
   box-shadow: var(--neu-shadow-raised);
   gap: 2rem;
   flex-wrap: wrap;
@@ -441,9 +441,9 @@
   display: inline-block;
   padding: 4px 12px;
   border-radius: 12px;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  color: #c084fc;
+  background: rgba(45, 143, 78, 0.12);
+  border: 1px solid rgba(45, 143, 78, 0.3);
+  color: #2d8f4e;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.8px;
@@ -454,14 +454,14 @@
   margin: 0 0 6px;
   font-size: 1.8rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #1a2e1a;
   letter-spacing: -0.5px;
 }
 
 .dash-hero-info p {
   margin: 0 0 16px;
   font-size: 14px;
-  color: #94a3b8;
+  color: #5a7a5a;
 }
 
 .dash-hero-pills {
@@ -474,12 +474,12 @@
 .neu-pill {
   padding: 6px 14px;
   border-radius: 20px;
-  background: #13111c;
+  background: #f8faf7;
   box-shadow: var(--neu-shadow-inset-sm);
   font-size: 11px;
-  font-weight: 700;
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-weight: 800;
+  color: #1a2e1a;
+  border: 1px solid rgba(45, 143, 78, 0.25);
 }
 
 .dash-hero-card-wrap {

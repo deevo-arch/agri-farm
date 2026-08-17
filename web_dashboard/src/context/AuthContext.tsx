@@ -1,214 +1,232 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type UserRole = 'farmer' | 'vet' | 'authority';
+export type UserRole = 'farmer' | 'vet' | 'authority' | 'consumer';
 
 export interface UserProfile {
+  id: string;
   email: string;
   fullName: string;
   role: UserRole;
-  password?: string;
+  is_verified?: boolean;
 }
 
 interface AuthContextType {
   user: UserProfile | null;
   activeRole: UserRole | null;
   isAuthenticated: boolean;
-  getRoleForEmail: (email: string) => UserRole | null;
-  loginWithPassword: (email: string, pass: string) => { success: boolean; message?: string; boundRole?: UserRole };
-  sendOtp: (email: string) => { success: boolean; otp?: string; message: string };
-  verifyOtpAndLogin: (email: string, otp: string) => { success: boolean; message?: string; boundRole?: UserRole };
-  registerUser: (email: string, pass: string, fullName: string, role: UserRole) => { success: boolean; message?: string };
+  isLoading: boolean;
+  accessToken: string | null;
+  getRoleForEmail: (email: string) => Promise<UserRole | null>;
+  loginWithPassword: (email: string, pass: string) => Promise<{ success: boolean; message?: string; boundRole?: UserRole }>;
+  registerUser: (email: string, pass: string, fullName: string, role: UserRole) => Promise<{ success: boolean; message?: string }>;
+  verifyOtp: (email: string, token: string) => Promise<{ success: boolean; message?: string; boundRole?: UserRole }>;
+  resendConfirmationEmail: (email: string) => Promise<{ success: boolean; message?: string }>;
   switchActiveRole: (newRole: UserRole) => void;
   updateAccountRole: (newRole: UserRole) => void;
   logout: () => void;
 }
 
-const DEFAULT_USERS: UserProfile[] = [
-  {
-    email: 'admin@amu.gov',
-    password: 'admin123',
-    fullName: 'System Admin',
-    role: 'authority',
-  },
-  {
-    email: 'farmer@amu.gov',
-    password: 'admin123',
-    fullName: 'Demo Farmer',
-    role: 'farmer',
-  },
-  {
-    email: 'vet@amu.gov',
-    password: 'admin123',
-    fullName: 'Dr. Demo Veterinarian',
-    role: 'vet',
-  },
-];
+const getApiBase = () => {
+  if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+    return `http://${window.location.hostname}:5000/api`;
+  }
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE = getApiBase();
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useState<UserProfile[]>(() => {
-    const saved = localStorage.getItem('amu_users_v2');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const merged = [...parsed];
-        DEFAULT_USERS.forEach((def) => {
-          if (!merged.some((u) => u.email.toLowerCase() === def.email.toLowerCase())) {
-            merged.push(def);
-          }
-        });
-        return merged;
-      } catch (e) {
-        return DEFAULT_USERS;
-      }
-    }
-    return DEFAULT_USERS;
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    return localStorage.getItem('agri_access_token');
   });
-
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const savedUser = localStorage.getItem('amu_current_user');
-    if (savedUser) {
-      try {
-        return JSON.parse(savedUser);
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  });
-
   const [activeRole, setActiveRole] = useState<UserRole | null>(() => {
-    const savedRole = localStorage.getItem('amu_active_role') as UserRole | null;
-    if (savedRole && ['farmer', 'vet', 'authority'].includes(savedRole)) {
-      return savedRole;
-    }
-    const savedUser = localStorage.getItem('amu_current_user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        return parsed.role || 'authority';
-      } catch (e) {
-        return 'authority';
-      }
-    }
+    const saved = localStorage.getItem('agri_active_role') as UserRole | null;
+    if (saved && ['farmer', 'vet', 'authority', 'consumer'].includes(saved)) return saved;
     return null;
   });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [pendingOTPs, setPendingOTPs] = useState<Record<string, string>>({});
-
+  // On mount: validate stored token
   useEffect(() => {
-    localStorage.setItem('amu_users_v2', JSON.stringify(users));
-  }, [users]);
+    const validateToken = async () => {
+      const token = localStorage.getItem('agri_access_token');
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
 
-  const getRoleForEmail = (email: string): UserRole | null => {
-    if (!email || !email.trim()) return null;
-    const found = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    return found ? found.role : null;
-  };
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-  const loginWithPassword = (email: string, pass: string) => {
-    const found = users.find(
-      (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === pass
-    );
+        if (res.ok) {
+          const json = await res.json();
+          const userData = json.data;
+          const profile: UserProfile = {
+            id: userData.id,
+            email: userData.email,
+            fullName: userData.full_name,
+            role: userData.role as UserRole,
+            is_verified: userData.is_verified,
+          };
+          setUser(profile);
+          setAccessToken(token);
 
-    if (!found) {
-      return {
-        success: false,
-        message: 'Invalid credentials. Use demo accounts or register a new account.',
-      };
-    }
+          // Restore active role or default to user's role
+          const savedRole = localStorage.getItem('agri_active_role') as UserRole;
+          if (savedRole && ['farmer', 'vet', 'authority', 'consumer'].includes(savedRole)) {
+            setActiveRole(savedRole);
+          } else {
+            setActiveRole(profile.role);
+          }
+        } else {
+          // Token invalid — clear
+          localStorage.removeItem('agri_access_token');
+          localStorage.removeItem('agri_active_role');
+          setAccessToken(null);
+        }
+      } catch {
+        localStorage.removeItem('agri_access_token');
+        setAccessToken(null);
+      }
 
-    setUser(found);
-    setActiveRole(found.role);
-    localStorage.setItem('amu_current_user', JSON.stringify(found));
-    localStorage.setItem('amu_active_role', found.role);
-    localStorage.setItem('amu_auth', 'ok');
-    return { success: true, boundRole: found.role };
-  };
-
-  const sendOtp = (email: string) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!trimmedEmail || !trimmedEmail.includes('@')) {
-      return { success: false, message: 'Please enter a valid email address.' };
-    }
-
-    const generatedOtp = '123456';
-    setPendingOTPs((prev) => ({ ...prev, [trimmedEmail]: generatedOtp }));
-
-    return {
-      success: true,
-      otp: generatedOtp,
-      message: `OTP dispatched to ${trimmedEmail}! (Demo OTP: 123456)`,
-    };
-  };
-
-  const verifyOtpAndLogin = (email: string, otp: string) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const storedOtp = pendingOTPs[trimmedEmail] || '123456';
-
-    if (otp.trim() !== storedOtp) {
-      return { success: false, message: 'Invalid OTP code. Use demo code: 123456' };
-    }
-
-    let found = users.find((u) => u.email.toLowerCase() === trimmedEmail);
-    if (!found) {
-      found = {
-        email: trimmedEmail,
-        fullName: trimmedEmail.split('@')[0],
-        role: 'farmer',
-      };
-      setUsers((prev) => [...prev, found!]);
-    }
-
-    setUser(found);
-    setActiveRole(found.role);
-    localStorage.setItem('amu_current_user', JSON.stringify(found));
-    localStorage.setItem('amu_active_role', found.role);
-    localStorage.setItem('amu_auth', 'ok');
-
-    setPendingOTPs((prev) => {
-      const copy = { ...prev };
-      delete copy[trimmedEmail];
-      return copy;
-    });
-
-    return { success: true, boundRole: found.role };
-  };
-
-  const registerUser = (
-    email: string,
-    pass: string,
-    fullName: string,
-    role: UserRole
-  ) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const existing = users.find((u) => u.email.toLowerCase() === trimmedEmail);
-
-    if (existing) {
-      return { success: false, message: 'An account with this email already exists!' };
-    }
-
-    const newUser: UserProfile = {
-      email: trimmedEmail,
-      password: pass,
-      fullName: fullName.trim() || trimmedEmail.split('@')[0],
-      role: role,
+      setIsLoading(false);
     };
 
-    setUsers((prev) => [...prev, newUser]);
-    setUser(newUser);
-    setActiveRole(newUser.role);
-    localStorage.setItem('amu_current_user', JSON.stringify(newUser));
-    localStorage.setItem('amu_active_role', newUser.role);
-    localStorage.setItem('amu_auth', 'ok');
+    validateToken();
+  }, []);
 
-    return { success: true };
+  const getRoleForEmail = async (email: string): Promise<UserRole | null> => {
+    if (!email?.trim()) return null;
+    try {
+      const res = await fetch(`${API_BASE}/auth/check-role?email=${encodeURIComponent(email.trim())}`);
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.role || null;
+      }
+    } catch {}
+    return null;
+  };
+
+  const loginWithPassword = async (email: string, pass: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        return { success: false, message: json.message || 'Login failed' };
+      }
+
+      const data = json.data;
+      const token = data.access_token;
+      const userData = data.user;
+
+      const profile: UserProfile = {
+        id: userData.id,
+        email: userData.email,
+        fullName: userData.full_name,
+        role: userData.role as UserRole,
+        is_verified: userData.is_verified,
+      };
+
+      setUser(profile);
+      setAccessToken(token);
+      setActiveRole(profile.role);
+
+      localStorage.setItem('agri_access_token', token);
+      localStorage.setItem('agri_active_role', profile.role);
+
+      return { success: true, boundRole: profile.role };
+    } catch (e: any) {
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  };
+
+  const registerUser = async (email: string, pass: string, fullName: string, role: UserRole) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass, fullName, role }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        return { success: false, message: json.message || 'Registration failed' };
+      }
+
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  };
+
+  const verifyOtp = async (email: string, token: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, token }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        return { success: false, message: json.message || 'OTP verification failed' };
+      }
+
+      const data = json.data;
+      const tok = data.access_token;
+      const userData = data.user;
+
+      const profile: UserProfile = {
+        id: userData.id,
+        email: userData.email,
+        fullName: userData.full_name,
+        role: userData.role as UserRole,
+        is_verified: userData.is_verified,
+      };
+
+      setUser(profile);
+      setAccessToken(tok);
+      setActiveRole(profile.role);
+
+      localStorage.setItem('agri_access_token', tok);
+      localStorage.setItem('agri_active_role', profile.role);
+
+      return { success: true, boundRole: profile.role };
+    } catch {
+      return { success: false, message: 'Network error verifying OTP code.' };
+    }
+  };
+
+  const resendConfirmationEmail = async (email: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/resend-confirmation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (!res.ok) return { success: false, message: json.message || 'Failed to resend code' };
+      return { success: true, message: 'Verification code resent to inbox!' };
+    } catch {
+      return { success: false, message: 'Network error resending code.' };
+    }
   };
 
   const switchActiveRole = (newRole: UserRole) => {
     setActiveRole(newRole);
-    localStorage.setItem('amu_active_role', newRole);
+    localStorage.setItem('agri_active_role', newRole);
   };
 
   const updateAccountRole = (newRole: UserRole) => {
@@ -216,19 +234,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updatedUser = { ...user, role: newRole };
     setUser(updatedUser);
     setActiveRole(newRole);
-    setUsers((prev) =>
-      prev.map((u) => (u.email.toLowerCase() === user.email.toLowerCase() ? updatedUser : u))
-    );
-    localStorage.setItem('amu_current_user', JSON.stringify(updatedUser));
-    localStorage.setItem('amu_active_role', newRole);
+    localStorage.setItem('agri_active_role', newRole);
   };
 
   const logout = () => {
+    // Fire-and-forget server logout
+    if (accessToken) {
+      fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).catch(() => {});
+    }
+
     setUser(null);
+    setAccessToken(null);
     setActiveRole(null);
-    localStorage.removeItem('amu_current_user');
-    localStorage.removeItem('amu_active_role');
-    localStorage.removeItem('amu_auth');
+    localStorage.removeItem('agri_access_token');
+    localStorage.removeItem('agri_active_role');
   };
 
   return (
@@ -236,12 +258,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         activeRole,
-        isAuthenticated: !!user || localStorage.getItem('amu_auth') === 'ok',
+        isAuthenticated: !!user && !!accessToken,
+        isLoading,
+        accessToken,
         getRoleForEmail,
         loginWithPassword,
-        sendOtp,
-        verifyOtpAndLogin,
         registerUser,
+        verifyOtp,
+        resendConfirmationEmail,
         switchActiveRole,
         updateAccountRole,
         logout,

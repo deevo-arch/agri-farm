@@ -15,6 +15,7 @@ import {
   Loader
 } from "lucide-react";
 import "../styles/FarmerRecords.css";
+import VideoPreloader from "../components/VideoPreloader";
 import { dashboardAPI, testApiConnectionDetailed, FarmerAnimalResponse } from "../services/api";
 import { useAuthContext } from "../context/AuthContext";
 
@@ -388,12 +389,7 @@ const FarmerRecords: React.FC = () => {
       )}
 
       {/* Loading State */}
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-          <p>Loading farmer data...</p>
-        </div>
-      )}
+      {loading && <VideoPreloader message="Fetching Farmer Records..." subtext="Syncing verified farm entries with database" />}
 
       {/* Stats Cards */}
       <div className="farmer-stats">

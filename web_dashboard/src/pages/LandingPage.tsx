@@ -49,42 +49,42 @@ export default function LandingPage() {
 
   const monitoringBentoCards: BentoCardData[] = [
     {
-      color: '#13111c',
+      color: '#f0f5ed',
       title: 'Adaptation & Innovation',
       description: 'Advanced systems adapting to evolving agricultural needs with innovative monitoring solutions',
       label: 'Innovation',
       icon: '🚀'
     },
     {
-      color: '#13111c',
+      color: '#f0f5ed',
       title: 'Productivity & Efficiency',
       description: 'Streamlined processes that enhance farm productivity while maintaining compliance standards',
       label: 'Efficiency',
       icon: '⚡'
     },
     {
-      color: '#13111c',
+      color: '#f0f5ed',
       title: 'Continuous Improvement',
       description: 'Ongoing optimization of monitoring systems for better outcomes and sustainable practices',
       label: 'Optimization',
       icon: '📈'
     },
     {
-      color: '#13111c',
+      color: '#f0f5ed',
       title: 'Data Acquisition',
       description: 'Comprehensive data collection and analysis for informed decision-making in antimicrobial usage',
       label: 'Insights',
       icon: '📊'
     },
     {
-      color: '#13111c',
+      color: '#f0f5ed',
       title: 'Performance Metrics',
       description: 'Detailed analytics and reporting to measure and improve farm management efficiency',
       label: 'Analytics',
       icon: '🎯'
     },
     {
-      color: '#13111c',
+      color: '#f0f5ed',
       title: 'Sustainable Growth',
       description: 'Promoting sustainable agricultural practices through responsible antimicrobial management',
       label: 'Sustainability',
@@ -129,7 +129,7 @@ export default function LandingPage() {
         {/* REACT BITS LIQUID ETHER FLUID SIMULATION BACKGROUND */}
         <div className="liquid-ether-background-layer">
           <LiquidEther
-            colors={['#5227FF', '#8b5cf6', '#38bdf8']}
+            colors={['#1a6b38', '#2d8f4e', '#4ade80']}
             mouseForce={22}
             cursorSize={120}
             isViscous={false}
@@ -149,8 +149,8 @@ export default function LandingPage() {
                 text="Agri Farm"
                 particleSize={1.6}
                 density={3}
-                color="#ffffff"
-                highlightColor="#8b5cf6"
+                color="#1a2e1a"
+                highlightColor="#2d8f4e"
                 scatter={90}
                 gatherDuration={1200}
                 stagger={200}
@@ -192,8 +192,8 @@ export default function LandingPage() {
                     text="Agri Farm"
                     particleSize={2.2}
                     density={4}
-                    color="#ffffff"
-                    highlightColor="#8b5cf6"
+                    color="#1a2e1a"
+                    highlightColor="#2d8f4e"
                     scatter={180}
                     gatherDuration={1600}
                     stagger={420}
@@ -256,7 +256,7 @@ export default function LandingPage() {
                     uppercase
                     color="#ffffff"
                     ribbon
-                    ribbonColor="#5227FF"
+                    ribbonColor="#2d8f4e"
                     ribbonWidth={75}
                     pauseOnHover={false}
                   />
@@ -288,7 +288,7 @@ export default function LandingPage() {
                   clickEffect={true}
                   spotlightRadius={300}
                   particleCount={12}
-                  glowColor="139, 92, 246"
+                  glowColor="45, 143, 78"
                 />
               </div>
             </div>
@@ -309,8 +309,8 @@ export default function LandingPage() {
               </div>
               <div className="impact-content">
                 <div className="impact-grid">
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={20}>
-                    <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.28)">
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={20}>
+                    <SpotlightCard spotlightColor="rgba(45, 143, 78, 0.28)">
                       <div className="impact-item-content">
                         <div className="impact-icon">🏥</div>
                         <h3>Healthcare Integration</h3>
@@ -319,8 +319,8 @@ export default function LandingPage() {
                     </SpotlightCard>
                   </BorderGlow>
 
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={20}>
-                    <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.28)">
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={20}>
+                    <SpotlightCard spotlightColor="rgba(45, 143, 78, 0.28)">
                       <div className="impact-item-content">
                         <div className="impact-icon">📱</div>
                         <h3>Digital Transformation</h3>
@@ -329,8 +329,8 @@ export default function LandingPage() {
                     </SpotlightCard>
                   </BorderGlow>
 
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={20}>
-                    <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.28)">
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={20}>
+                    <SpotlightCard spotlightColor="rgba(45, 143, 78, 0.28)">
                       <div className="impact-item-content">
                         <div className="impact-icon">🔬</div>
                         <h3>Research & Development</h3>
@@ -339,8 +339,8 @@ export default function LandingPage() {
                     </SpotlightCard>
                   </BorderGlow>
 
-                  <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={20}>
-                    <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.28)">
+                  <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={20}>
+                    <SpotlightCard spotlightColor="rgba(45, 143, 78, 0.28)">
                       <div className="impact-item-content">
                         <div className="impact-icon">🌍</div>
                         <h3>Global Standards</h3>

@@ -36,14 +36,46 @@ export default function AdminInvites() {
   };
 
   const handleCopy = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setToast({
-      type: "info",
-      title: "Code Copied to Clipboard",
-      message: `Code ${code} copied! Share with recipient to claim within 5 minutes.`
-    });
-    setTimeout(() => setCopiedCode(null), 3000);
+    let success = false;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(code).then(() => {
+        setCopiedCode(code);
+      }).catch(() => {
+        fallbackCopy(code);
+      });
+      success = true;
+    } else {
+      success = fallbackCopy(code);
+    }
+
+    if (success || true) {
+      setCopiedCode(code);
+      setToast({
+        type: "info",
+        title: "Code Copied to Clipboard",
+        message: `Code ${code} copied! Share with recipient to claim within 5 minutes.`
+      });
+      setTimeout(() => setCopiedCode(null), 3000);
+    }
+  };
+
+  const fallbackCopy = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    let res = false;
+    try {
+      res = document.execCommand("copy");
+    } catch (err) {
+      console.error("Fallback copy failed", err);
+    }
+    document.body.removeChild(textArea);
+    return res;
   };
 
   const formatTimeLeft = (expiresAt: number) => {
@@ -60,7 +92,7 @@ export default function AdminInvites() {
       <div className="page-header">
         <div className="header-left-title">
           <div className="title-icon-badge neu-btn">
-            <Key size={26} color="#c084fc" />
+            <Key size={26} color="#15803d" />
           </div>
           <div>
             <h1 className="page-title">Admin Invites Management</h1>

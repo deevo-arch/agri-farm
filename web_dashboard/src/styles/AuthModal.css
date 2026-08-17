@@ -2,7 +2,7 @@
 .auth-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(9, 9, 15, 0.85);
+  background: rgba(232, 240, 228, 0.85);
   backdrop-filter: blur(10px);
   z-index: 1200;
   animation: fadeIn 0.25s ease;
@@ -43,7 +43,7 @@
   padding: 20px 22px;
   color: var(--text-main);
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.4) transparent;
+  scrollbar-color: rgba(45, 143, 78, 0.4) transparent;
 }
 
 .auth-landscape-modal::-webkit-scrollbar {
@@ -56,12 +56,12 @@
 }
 
 .auth-landscape-modal::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(45, 143, 78, 0.4);
   border-radius: 10px;
 }
 
 .auth-landscape-modal::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.8);
+  background: rgba(45, 143, 78, 0.8);
 }
 
 @keyframes modalSlideIn {
@@ -85,10 +85,10 @@
   height: 38px;
   border-radius: 50%;
   padding: 0;
-  color: #ffffff;
-  background: #13111c;
-  border: 1.5px solid rgba(139, 92, 246, 0.6);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(139, 92, 246, 0.4);
+  color: #1a2e1a;
+  background: #f0f5ed;
+  border: 1.5px solid rgba(45, 143, 78, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 15px rgba(45, 143, 78, 0.3);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
   justify-content: space-between;
   padding: 16px;
   border-radius: 18px;
-  background: #0d0b17;
+  background: var(--bg-card);
   box-shadow: var(--neu-shadow-inset);
   position: relative;
   overflow: hidden;
@@ -343,7 +343,7 @@
 
 .role-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 

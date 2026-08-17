@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import StatCard from "../components/StatCard";
+import VideoPreloader from "../components/VideoPreloader";
 import ReflectiveCard from "../components/ReflectiveCard";
 import { getAvatarUrl, getLocalSvgAvatar } from "../utils/avatarGenerator";
 import { FiUsers, FiTag, FiShield, FiActivity, FiBarChart2, FiAlertTriangle, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
@@ -362,15 +363,7 @@ export default function Dashboard() {
     : 0;
 
   if (loading) {
-    return (
-      <div className="page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading dashboard data...</p>
-          {apiStatus === 'checking' && <p className="api-status">Checking API connection...</p>}
-        </div>
-      </div>
-    );
+    return <VideoPreloader message="Fetching Live Dashboard Data..." subtext="Connecting to Agri Farm Live API..." />;
   }
 
   return (
@@ -404,42 +397,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="header-actions">
-          {/* Neumorphic User Profile & System Admin Avatar Badge */}
-          <div className="dash-user-badge neu-card">
-            <div
-              className="dash-avatar-container neu-btn"
-              onClick={() => setAvatarIndex(prev => prev + 1)}
-              title="Click to cycle avatar library style"
-            >
-              <img
-                src={getAvatarUrl(user?.email || user?.fullName || 'System Admin', avatarIndex)}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = getLocalSvgAvatar(user?.email || user?.fullName || 'User');
-                }}
-                alt="User Profile Avatar"
-                className="dash-avatar-img"
-              />
-              <span className="avatar-cycle-badge" title="Cycle Avatar">🎲</span>
-            </div>
-            <div className="dash-user-text">
-              <span className="dash-user-name">{user?.fullName || (user?.email ? user.email.split('@')[0] : 'System Admin')}</span>
-              <span className="dash-user-role-pill">
-                {currentRole === 'farmer' ? '🌾 Farmer Portal' : currentRole === 'vet' ? '🩺 Vet Portal' : '🛡️ Authority Admin'}
-              </span>
-            </div>
-          </div>
-
-          <button
-            className="head-icon-btn refresh-btn neu-btn"
-            onClick={fetchDashboardData}
-            aria-label="Refresh data"
-            title="Refresh dashboard data"
-            disabled={loading}
-          >
-            <FiRefreshCw size={18} className={loading ? 'spinning' : ''} />
-          </button>
-        </div>
       </header>
 
       {/* System Admin Identity & Live Holographic Avatar Banner */}

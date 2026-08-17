@@ -50,8 +50,7 @@
   margin: 0;
   position: relative;
   z-index: 3;
-  color: white;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+  color: #1a2e1a;
 }
 
 .gooey-nav-container nav ul li {
@@ -63,7 +62,8 @@
     color 0.3s ease,
     box-shadow 0.3s ease;
   box-shadow: 0 0 0.5px 1.5px transparent;
-  color: white;
+  color: #1a2e1a;
+  font-weight: 800;
 }
 
 .gooey-nav-container nav ul li a {

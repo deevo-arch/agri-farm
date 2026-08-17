@@ -75,7 +75,7 @@ export default function ParticlePreloader() {
       <div className="preloader-pixel-card-wrapper">
         <PixelTransition
           gridSize={8}
-          pixelColor="#8b5cf6"
+          pixelColor="#2d8f4e"
           animationStepDuration={0.35}
           aspectRatio="55%"
           className="preloader-pixel-card"

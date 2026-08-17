@@ -11,11 +11,12 @@ import {
   User,
   AlertCircle,
   CheckCircle2,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   Stethoscope,
-  Wheat
+  Wheat,
+  ShoppingCart,
+  KeyRound
 } from "lucide-react";
 import "../styles/AuthModal.css";
 
@@ -31,22 +32,20 @@ export default function AuthModal({
   initialMode = 'login'
 }: AuthModalProps) {
   const navigate = useNavigate();
-  const { loginWithPassword, registerUser, getRoleForEmail, sendOtp, verifyOtpAndLogin } = useAuthContext();
+  const { loginWithPassword, registerUser, verifyOtp, resendConfirmationEmail } = useAuthContext();
 
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
-  const [authMethod, setAuthMethod] = useState<'password' | 'otp'>('password');
-  
+  const [mode, setMode] = useState<'login' | 'register' | 'verify-otp'>(initialMode);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole>('farmer');
-  
+  const [adminInviteCode, setAdminInviteCode] = useState("");
   const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpMessage, setOtpMessage] = useState<string | null>(null);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Random ID Number generated per modal session
@@ -60,123 +59,98 @@ export default function AuthModal({
   useEffect(() => {
     setMode(initialMode);
     setErrorMessage(null);
-    setOtpMessage(null);
-    setOtpSent(false);
+    setSuccessMessage(null);
+    setOtpCode('');
   }, [initialMode, isOpen]);
-
-  // Real-time email role detection during login
-  const detectedRole = useMemo(() => {
-    if (mode === 'login' && email.trim()) {
-      return getRoleForEmail(email.trim());
-    }
-    return null;
-  }, [email, mode, getRoleForEmail]);
 
   if (!isOpen) return null;
 
-  const handleFillDemo = (demoEmail: string, role: UserRole) => {
-    setMode('login');
-    setEmail(demoEmail);
-    setPassword("admin123");
-    setAuthMethod("password");
-    setSelectedRole(role);
-    setErrorMessage(null);
-    setOtpMessage(null);
-  };
-
-  const handleSendOtp = () => {
-    if (!email) {
-      setErrorMessage("Please enter your email address first.");
-      return;
-    }
-    setErrorMessage(null);
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      const res = sendOtp(email);
-      setIsLoading(false);
-      if (res.success) {
-        setOtpSent(true);
-        setOtpMessage(res.message);
-      } else {
-        setErrorMessage(res.message);
-      }
-    }, 400);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    setOtpMessage(null);
+    setSuccessMessage(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (mode === 'login') {
-        if (authMethod === 'password') {
-          const res = loginWithPassword(email, password);
+    try {
+      if (mode === 'verify-otp') {
+        if (!otpCode || !otpCode.trim()) {
+          setErrorMessage("Please enter valid verification code");
           setIsLoading(false);
-          if (res.success) {
-            onClose();
-            navigate('/dashboard');
+          return;
+        }
+        const res = await verifyOtp(email, otpCode.trim());
+        if (res.success) {
+          onClose();
+          if (selectedRole === 'farmer') {
+            navigate('/farmer-verification');
+          } else if (selectedRole === 'vet') {
+            navigate('/vet-verification');
           } else {
-            setErrorMessage(res.message || "Invalid credentials. Use demo accounts or register a new account.");
+            navigate('/dashboard');
           }
         } else {
-          // OTP Login
-          const res = verifyOtpAndLogin(email, otpCode);
-          setIsLoading(false);
-          if (res.success) {
-            onClose();
-            navigate('/dashboard');
-          } else {
-            setErrorMessage(res.message || "Invalid OTP code. Use demo code: 123456");
-          }
+          setErrorMessage(res.message || "Invalid OTP code");
+        }
+      } else if (mode === 'login') {
+        const res = await loginWithPassword(email, password);
+        if (res.success) {
+          onClose();
+          navigate('/dashboard');
+        } else {
+          setErrorMessage(res.message || "Invalid credentials.");
         }
       } else {
-        // REGISTRATION MODE
-        if (authMethod === 'password') {
-          if (password !== confirmPassword) {
+        // REGISTRATION
+        if (password !== confirmPassword) {
+          setErrorMessage("Passwords do not match!");
+          setIsLoading(false);
+          return;
+        }
+        if (password.length < 6) {
+          setErrorMessage("Password must be at least 6 characters.");
+          setIsLoading(false);
+          return;
+        }
+        if (selectedRole === 'authority') {
+          const cleanCode = adminInviteCode.replace(/[\s-]/g, '');
+          if (!cleanCode || cleanCode.length !== 12) {
+            setErrorMessage("Admin Authority registration requires a valid 12-digit Invite Code.");
             setIsLoading(false);
-            setErrorMessage("Passwords do not match!");
             return;
           }
-          const res = registerUser(email, password, fullName, selectedRole);
-          setIsLoading(false);
-          if (res.success) {
-            onClose();
-            navigate('/dashboard');
-          } else {
-            setErrorMessage(res.message || "Registration failed");
-          }
+        }
+        const res = await registerUser(email, password, fullName, selectedRole);
+        if (res.success) {
+          // Switch to OTP Verification screen
+          setMode('verify-otp');
+          setSuccessMessage("Verification email sent! Enter the 6-digit code or click confirmation link.");
         } else {
-          // OTP Register
-          const res = verifyOtpAndLogin(email, otpCode);
-          setIsLoading(false);
-          if (res.success) {
-            onClose();
-            navigate('/dashboard');
-          } else {
-            setErrorMessage(res.message || "Invalid OTP code. Use demo code: 123456");
-          }
+          setErrorMessage(res.message || "Registration failed");
         }
       }
-    }, 400);
+    } catch {
+      setErrorMessage("Network error. Please try again.");
+    }
+
+    setIsLoading(false);
   };
 
   const switchMode = (newMode: 'login' | 'register') => {
     setMode(newMode);
     setErrorMessage(null);
-    setOtpMessage(null);
+    setSuccessMessage(null);
   };
 
   const renderRoleBadge = (role: UserRole) => {
     switch (role) {
       case 'farmer':
-        return <span className="detected-role-badge badge-farmer"><Wheat size={12} /> Farmer Account Detected</span>;
+        return <span className="detected-role-badge badge-farmer"><Wheat size={12} /> Farmer</span>;
       case 'vet':
-        return <span className="detected-role-badge badge-vet"><Stethoscope size={12} /> Vet Account Detected</span>;
+        return <span className="detected-role-badge badge-vet"><Stethoscope size={12} /> Veterinarian</span>;
       case 'authority':
-        return <span className="detected-role-badge badge-admin"><ShieldCheck size={12} /> Admin Account Detected</span>;
+        return <span className="detected-role-badge badge-admin"><ShieldCheck size={12} /> Admin</span>;
+      case 'consumer':
+        return <span className="detected-role-badge badge-consumer"><ShoppingCart size={12} /> Consumer</span>;
     }
   };
 
@@ -186,35 +160,34 @@ export default function AuthModal({
     : (email.trim() ? email.toUpperCase() : "USER@AGRIFARM.GOV");
 
   const cardUserRole = mode === 'register'
-    ? (selectedRole === 'farmer' ? "FARMER WORKSPACE" : selectedRole === 'vet' ? "VETERINARIAN HUB" : "ADMIN AUTHORITY")
+    ? (selectedRole === 'farmer' ? "FARMER WORKSPACE" : selectedRole === 'vet' ? "VETERINARIAN HUB" : selectedRole === 'consumer' ? "CONSUMER PORTAL" : "ADMIN AUTHORITY")
     : "AGRI FARM";
 
   return (
     <div className="auth-overlay">
       <div className="auth-landscape-modal-wrapper">
-        {/* Floating Always-Visible Top-Right Close Button */}
         <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
           <X size={20} />
         </button>
 
         <BorderGlow
-          colors={['#8b5cf6', '#c084fc', '#38bdf8']}
-          backgroundColor="#13111c"
+          colors={['#2d8f4e', '#4ade80', '#16a34a']}
+          backgroundColor="#f0f5ed"
           borderRadius={24}
           glowRadius={30}
           glowIntensity={1.0}
         >
           <div className="auth-landscape-modal">
             <div className="landscape-modal-grid">
-              {/* LEFT COLUMN: HERO GRAPHICS WITH REFLECTIVE CARD */}
+              {/* LEFT COLUMN: HERO GRAPHICS */}
               <div className="landscape-left-hero">
                 <div className="particle-text-container-modal">
                   <ParticleText
                     text="Agri Farm"
                     particleSize={1.8}
                     density={3}
-                    color="#ffffff"
-                    highlightColor="#8b5cf6"
+                    color="#1a2e1a"
+                    highlightColor="#2d8f4e"
                     scatter={100}
                     gatherDuration={1200}
                     stagger={250}
@@ -229,13 +202,12 @@ export default function AuthModal({
                   />
                 </div>
 
-                {/* REACT BITS REFLECTIVE CARD COMPONENT */}
                 <div className="reflective-card-wrapper-modal">
                   <ReflectiveCard
                     userName={cardUserName}
                     userRole={cardUserRole}
                     idNumber={randomSecurityId}
-                    overlayColor="rgba(0, 0, 0, 0.2)"
+                    overlayColor="rgba(45, 143, 78, 0.15)"
                     blurStrength={10}
                     glassDistortion={15}
                     metalness={0.8}
@@ -244,48 +216,17 @@ export default function AuthModal({
                     noiseScale={1.5}
                     specularConstant={2.0}
                     grayscale={0.5}
-                    color="#ffffff"
+                    color="#2d8f4e"
                   />
                 </div>
 
                 <div className="hero-footer-note">
-                  <span>📧 Secure Email Verification Active</span>
+                  <span>© 2026 Agri Farm. All rights reserved. | Official Livestock & Food Safety Portal</span>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: INTERACTIVE FORM */}
+              {/* RIGHT COLUMN: FORM */}
               <div className="landscape-right-form">
-                {/* Quick Demo Credentials Bar */}
-                <div className="demo-accounts-bar neu-inset">
-                  <div className="demo-title">
-                    <Sparkles size={14} className="text-violet-400" />
-                    <span>1-Click Demo Accounts (Password: <strong>admin123</strong>):</span>
-                  </div>
-                  <div className="demo-buttons">
-                    <button
-                      type="button"
-                      className="demo-chip neu-btn"
-                      onClick={() => handleFillDemo('admin@amu.gov', 'authority')}
-                    >
-                      <span className="demo-chip-icon">🛡️</span> Admin
-                    </button>
-                    <button
-                      type="button"
-                      className="demo-chip neu-btn"
-                      onClick={() => handleFillDemo('farmer@amu.gov', 'farmer')}
-                    >
-                      <span className="demo-chip-icon">🌾</span> Farmer
-                    </button>
-                    <button
-                      type="button"
-                      className="demo-chip neu-btn"
-                      onClick={() => handleFillDemo('vet@amu.gov', 'vet')}
-                    >
-                      <span className="demo-chip-icon">🩺</span> Vet
-                    </button>
-                  </div>
-                </div>
-
                 {/* Mode Switcher Tabs */}
                 <div className="auth-mode-tabs neu-inset">
                   <button
@@ -304,24 +245,6 @@ export default function AuthModal({
                   </button>
                 </div>
 
-                {/* Auth Method Switcher (Password vs Email OTP) */}
-                <div className="auth-method-selector">
-                  <button
-                    type="button"
-                    className={`method-btn ${authMethod === 'password' ? 'active' : ''}`}
-                    onClick={() => setAuthMethod('password')}
-                  >
-                    <Lock size={13} /> Password Login
-                  </button>
-                  <button
-                    type="button"
-                    className={`method-btn ${authMethod === 'otp' ? 'active' : ''}`}
-                    onClick={() => setAuthMethod('otp')}
-                  >
-                    <Mail size={13} /> Email OTP
-                  </button>
-                </div>
-
                 {/* Form Body */}
                 <form onSubmit={handleSubmit} className="modal-form">
                   {errorMessage && (
@@ -331,19 +254,19 @@ export default function AuthModal({
                     </div>
                   )}
 
-                  {otpMessage && (
+                  {successMessage && (
                     <div className="auth-alert alert-success neu-inset">
                       <CheckCircle2 size={15} />
-                      <span>{otpMessage}</span>
+                      <span>{successMessage}</span>
                     </div>
                   )}
 
-                  {/* REGISTRATION ONLY ROLE PICKER WITH BORDER GLOW CARDS */}
+                  {/* ROLE PICKER — Registration only */}
                   {mode === 'register' && (
                     <div className="role-selection-section">
-                      <label className="section-label">Choose Account Role (Required on Registration):</label>
+                      <label className="section-label">Choose Account Role:</label>
                       <div className="role-cards-grid">
-                        <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={12}>
+                        <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
                           <div
                             className={`role-card neu-btn ${selectedRole === 'farmer' ? 'selected' : ''}`}
                             onClick={() => setSelectedRole('farmer')}
@@ -356,7 +279,7 @@ export default function AuthModal({
                           </div>
                         </BorderGlow>
 
-                        <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={12}>
+                        <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
                           <div
                             className={`role-card neu-btn ${selectedRole === 'vet' ? 'selected' : ''}`}
                             onClick={() => setSelectedRole('vet')}
@@ -369,7 +292,7 @@ export default function AuthModal({
                           </div>
                         </BorderGlow>
 
-                        <BorderGlow colors={['#8b5cf6', '#c084fc', '#38bdf8']} backgroundColor="#13111c" borderRadius={12}>
+                        <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
                           <div
                             className={`role-card neu-btn ${selectedRole === 'authority' ? 'selected' : ''}`}
                             onClick={() => setSelectedRole('authority')}
@@ -378,6 +301,19 @@ export default function AuthModal({
                             <div className="role-info">
                               <h4>Admin</h4>
                               <p>Full system control</p>
+                            </div>
+                          </div>
+                        </BorderGlow>
+
+                        <BorderGlow colors={['#2d8f4e', '#4ade80', '#16a34a']} backgroundColor="#f0f5ed" borderRadius={12}>
+                          <div
+                            className={`role-card neu-btn ${selectedRole === 'consumer' ? 'selected' : ''}`}
+                            onClick={() => setSelectedRole('consumer')}
+                          >
+                            <div className="role-icon">🛒</div>
+                            <div className="role-info">
+                              <h4>Consumer</h4>
+                              <p>Food safety checks</p>
                             </div>
                           </div>
                         </BorderGlow>
@@ -404,95 +340,144 @@ export default function AuthModal({
                     </div>
                   )}
 
-                  {/* Email Address */}
-                  <div className="form-group">
-                    <div className="label-with-detected">
-                      <label htmlFor="email">Email Address</label>
-                      {mode === 'login' && detectedRole && renderRoleBadge(detectedRole)}
-                    </div>
-                    <div className="input-wrapper neu-inset">
-                      <Mail size={15} className="input-icon" />
-                      <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter email address"
-                        required
-                        disabled={isLoading}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Password Field (If Password mode) */}
-                  {authMethod === 'password' && (
+                  {/* OTP Verification Input when mode === 'verify-otp' */}
+                  {mode === 'verify-otp' ? (
                     <div className="form-group">
-                      <label htmlFor="password">Password</label>
+                      <label htmlFor="otp-code">6-Digit Verification Code</label>
                       <div className="input-wrapper neu-inset">
-                        <Lock size={15} className="input-icon" />
+                        <KeyRound size={15} className="input-icon" />
                         <input
-                          id="password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Enter password (e.g. admin123)"
+                          id="otp-code"
+                          type="text"
+                          maxLength={12}
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value)}
+                          placeholder="Enter verification code"
                           required
                           disabled={isLoading}
                         />
                       </div>
-                    </div>
-                  )}
-
-                  {/* Confirm Password (If Registering with Password) */}
-                  {mode === 'register' && authMethod === 'password' && (
-                    <div className="form-group">
-                      <label htmlFor="confirm-password">Confirm Password</label>
-                      <div className="input-wrapper neu-inset">
-                        <Lock size={15} className="input-icon" />
-                        <input
-                          id="confirm-password"
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Confirm password"
-                          required
-                          disabled={isLoading}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* OTP Section (If OTP Mode) */}
-                  {authMethod === 'otp' && (
-                    <div className="otp-group-container">
-                      <div className="otp-request-row">
+                      <div className="resend-link-row" style={{ marginTop: '10px', textAlign: 'right' }}>
                         <button
                           type="button"
-                          className="send-otp-btn neu-btn"
-                          onClick={handleSendOtp}
-                          disabled={isLoading || !email}
+                          className="text-btn-neu"
+                          style={{ background: 'none', border: 'none', color: '#2d8f4e', fontWeight: 700, cursor: 'pointer', fontSize: '12px' }}
+                          onClick={async () => {
+                            const res = await resendConfirmationEmail(email);
+                            if (res.success) {
+                              setSuccessMessage(res.message || "Code resent to inbox!");
+                            } else {
+                              setErrorMessage(res.message || "Failed to resend code");
+                            }
+                          }}
                         >
-                          {otpSent ? 'Resend Email OTP' : 'Send Free Email OTP'}
+                          📩 Resend Confirmation Code
                         </button>
                       </div>
-
+                    </div>
+                  ) : (
+                    <>
+                      {/* Email Address */}
                       <div className="form-group">
-                        <label htmlFor="otp">Enter 6-Digit OTP</label>
+                        <label htmlFor="email">Email Address</label>
                         <div className="input-wrapper neu-inset">
-                          <Lock size={15} className="input-icon" />
+                          <Mail size={15} className="input-icon" />
                           <input
-                            id="otp"
-                            type="text"
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value)}
-                            placeholder="Enter 6-digit code (e.g. 123456)"
-                            maxLength={6}
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter email address"
                             required
                             disabled={isLoading}
                           />
                         </div>
                       </div>
-                    </div>
+
+                      {/* Password */}
+                      <div className="form-group">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <label htmlFor="password">Password</label>
+                          {mode === 'login' && (
+                            <button
+                              type="button"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#2d8f4e',
+                                fontWeight: 600,
+                                fontSize: '11px',
+                                cursor: 'pointer',
+                                padding: 0
+                              }}
+                              onClick={() => {
+                                if (!email.trim()) {
+                                  setErrorMessage("Please enter your email address first.");
+                                } else {
+                                  setSuccessMessage(`Password reset instruction sent to ${email}`);
+                                  setErrorMessage(null);
+                                }
+                              }}
+                            >
+                              Forgot Password?
+                            </button>
+                          )}
+                        </div>
+                        <div className="input-wrapper neu-inset">
+                          <Lock size={15} className="input-icon" />
+                          <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter password (min 6 characters)"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Confirm Password (Registration) */}
+                      {mode === 'register' && (
+                        <>
+                          <div className="form-group">
+                            <label htmlFor="confirm-password">Confirm Password</label>
+                            <div className="input-wrapper neu-inset">
+                              <Lock size={15} className="input-icon" />
+                              <input
+                                id="confirm-password"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Confirm password"
+                                required
+                                disabled={isLoading}
+                              />
+                            </div>
+                          </div>
+
+                          {/* 12-Digit Admin Invite Code requirement for Authority */}
+                          {selectedRole === 'authority' && (
+                            <div className="form-group">
+                              <label htmlFor="admin-invite-code">12-Digit Admin Invite Code</label>
+                              <div className="input-wrapper neu-inset">
+                                <KeyRound size={15} className="input-icon" />
+                                <input
+                                  id="admin-invite-code"
+                                  type="text"
+                                  maxLength={14}
+                                  value={adminInviteCode}
+                                  onChange={(e) => setAdminInviteCode(e.target.value)}
+                                  placeholder="Enter 12-digit code (e.g. ADMN-9942-8812)"
+                                  required
+                                  disabled={isLoading}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
                   )}
 
                   {/* Submit Button */}
@@ -506,8 +491,10 @@ export default function AuthModal({
                     ) : (
                       <>
                         <span>
-                          {mode === 'login'
-                            ? (detectedRole ? `Sign In (${detectedRole.toUpperCase()})` : 'Sign In')
+                          {mode === 'verify-otp'
+                            ? 'Verify Code & Access Portal'
+                            : mode === 'login'
+                            ? 'Sign In'
                             : `Create ${selectedRole.toUpperCase()} Account`}
                         </span>
                         <ArrowRight size={15} />

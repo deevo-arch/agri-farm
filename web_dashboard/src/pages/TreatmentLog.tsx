@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiAlertCircle, FiCheckCircle, FiClock, FiRefreshCw } from "react-icons/fi";
 import "../styles/TreatmentLog.css";
+import VideoPreloader from "../components/VideoPreloader";
 import { dashboardAPI, Treatment as ApiTreatment, Farmer, Animal, Vet } from "../services/api";
 import { useAuthContext } from "../context/AuthContext";
 
@@ -45,21 +46,21 @@ const getNameFromId = async (
   try {
     if (type === 'farmer' && dataCache.farmers.has(id)) {
       const farmer = dataCache.farmers.get(id)!;
-      return { name: farmer.name || 'Unknown Farmer', id: farmer._id, details: farmer };
+      return { name: farmer.name || 'Unknown Farmer', id: farmer.id || farmer._id, details: farmer };
     }
 
     if (type === 'animal' && dataCache.animals.has(id)) {
       const animal = dataCache.animals.get(id)!;
       return {
         name: animal.tag_number || `Animal-${id.substring(0, 6)}`,
-        id: animal._id,
+        id: animal.id || animal._id,
         details: animal
       };
     }
 
     if (type === 'vet' && dataCache.vets.has(id)) {
       const vet = dataCache.vets.get(id)!;
-      return { name: vet.name || 'Unknown Vet', id: vet._id, details: vet };
+      return { name: vet.name || 'Unknown Vet', id: vet.id || vet._id, details: vet };
     }
 
     // Fetch from API if not in cache
@@ -67,8 +68,8 @@ const getNameFromId = async (
       case 'farmer':
         try {
           const farmers = await dashboardAPI.getFarmers();
-          farmers.forEach(f => dataCache.farmers.set(f._id, f));
-          const farmer = farmers.find(f => f._id === id);
+          farmers.forEach(f => dataCache.farmers.set(f.id || f._id, f));
+          const farmer = farmers.find(f => (f.id || f._id) === id);
           return {
             name: farmer?.name || 'Unknown Farmer',
             id: id,
@@ -81,8 +82,8 @@ const getNameFromId = async (
       case 'animal':
         try {
           const animals = await dashboardAPI.getAnimals();
-          animals.forEach(a => dataCache.animals.set(a._id, a));
-          const animal = animals.find(a => a._id === id);
+          animals.forEach(a => dataCache.animals.set(a.id || a._id, a));
+          const animal = animals.find(a => (a.id || a._id) === id);
           return {
             name: animal?.tag_number || `Animal-${id.substring(0, 6)}`,
             id: id,
@@ -95,8 +96,8 @@ const getNameFromId = async (
       case 'vet':
         try {
           const vets = await dashboardAPI.getVets();
-          vets.forEach(v => dataCache.vets.set(v._id, v));
-          const vet = vets.find(v => v._id === id);
+          vets.forEach(v => dataCache.vets.set(v.id || v._id, v));
+          const vet = vets.find(v => (v.id || v._id) === id);
           return {
             name: vet?.name || 'Unknown Vet',
             id: id,
@@ -107,8 +108,8 @@ const getNameFromId = async (
         }
     }
   } catch (error) {
-    console.error(`Error fetching ${type} data:`, error);
-    return { name: `Unknown ${type.charAt(0).toUpperCase() + type.slice(1)}`, id };
+    console.error(`Error resolving name for ${type} ID ${id}:`, error);
+    return { name: `Unknown ${type}`, id };
   }
 };
 
@@ -536,12 +537,7 @@ export default function TreatmentLog() {
       )}
 
       {/* Loading State */}
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-          <p>Loading treatment data...</p>
-        </div>
-      )}
+      {loading && <VideoPreloader message="Fetching Treatment Logs..." subtext="Analyzing withdrawal periods & compliance data" />}
 
       {/* Statistics Cards */}
       <div className="stats-grid">

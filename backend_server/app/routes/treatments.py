@@ -1,325 +1,221 @@
-from flask import Blueprint, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime
-from mongoengine.queryset.visitor import Q
-
+"""
+Treatments Routes — treatment creation, diagnosis, and queries via Supabase.
+"""
+from flask import Blueprint, request, g
+from datetime import datetime, timedelta
+from app.db import get_supabase
 from app.utils.responses import success_response, error_response
-from app.models.treatments import Treatment, MedicineDetail
-from app.models.farmers import Farmer
-from app.models.vets import Vet
-from app.models.animals import Animal
-from app.services.withdrawal_service import WithdrawalService
-from app.models.authorized_medicine import AuthorizedMedicine
-from app.models.prescribed_medicine import PrescribedMedicine
-from app.models.authorized_medicine import AuthorizedMedicine
-from app.models.prescribed_medicine import PrescribedMedicine
-from app.services.withdrawal_service import WithdrawalService
-from datetime import datetime
+from app.utils.auth_decorator import require_auth
 
-treatments_bp = Blueprint("treatments", __name__)
+treatments_bp = Blueprint('treatments', __name__)
 
-# ------------------------------------------------------------
-# 1) FARMER CREATES TREATMENT REQUEST
-# ------------------------------------------------------------
+
+# ============================================================
+# POST /treatments/request — Farmer creates treatment request
+# ============================================================
 @treatments_bp.route('/request', methods=['POST'])
-@jwt_required()
+@require_auth
 def create_treatment_request():
-    print("\n[TREATMENT] create_treatment_request CALLED")
-
     data = request.get_json() or {}
-    farmer_id = get_jwt_identity()
-    print(f"[TREATMENT] farmer_id = {farmer_id}")
+    sb = get_supabase()
+    user_id = g.user["id"]
 
-    farmer = Farmer.objects(id=farmer_id).first()
-    if not farmer:
-        print("[TREATMENT] ERROR: Not a farmer")
+    # Find farmer profile for this user
+    farmer_result = sb.table("farmers").select("id").eq("user_id", user_id).execute()
+    if not farmer_result.data:
         return error_response("Only farmers can create treatment requests", 403)
 
-    required_fields = ["animal_id", "symptoms"]
-    if not all(data.get(f) for f in required_fields):
-        print("[TREATMENT] ERROR: Missing fields")
-        return error_response("Missing fields", 400)
+    farmer_id = farmer_result.data[0]["id"]
+    animal_id = data.get("animal_id")
+    symptoms = data.get("symptoms", [])
 
-    animal = Animal.objects(id=data["animal_id"], farmer=farmer).first()
-    if not animal:
-        print("[TREATMENT] ERROR: Animal not found or not owned by farmer")
-        return error_response("Animal not found", 403)
+    if not animal_id:
+        return error_response("animal_id is required", 400)
 
-    treatment = Treatment(
-        farmer=farmer,
-        animal=animal,
-        #diagnosis=data["diagnosis"],
-        symptoms=data.get("symptoms", []),
-        notes=data.get("notes"),
-        medicines=[],
-        status="pending"
-    ).save()
+    # Verify animal belongs to farmer
+    animal_check = sb.table("animals").select("id").eq("id", animal_id).eq("farmer_id", farmer_id).execute()
+    if not animal_check.data:
+        return error_response("Animal not found or not owned by farmer", 403)
 
-    animal.treatment_ids.append(str(treatment.id))
-    animal.save()
-
-    print(f"[TREATMENT] Treatment request created: {treatment.id}")
-    return success_response(treatment.to_json(), 201)
-
-# ------------------------------------------------------------
-# 2) GET A SINGLE TREATMENT
-# ------------------------------------------------------------
-
-@treatments_bp.route('/<treatment_id>', methods=['GET'])
-@jwt_required()
-def get_treatment(treatment_id):
-    print(f"\n[TREATMENT] get_treatment CALLED: {treatment_id}")
-
-    user_id = get_jwt_identity()
-    treatment = Treatment.objects(id=treatment_id).first()
-
-    if not treatment:
-        return error_response("Treatment not found", 404)
-
-    farmer = Farmer.objects(id=user_id).first()
-    vet = Vet.objects(id=user_id).first()
-
-    if farmer and str(treatment.farmer.id) != str(farmer.id):
-        return error_response("Not allowed", 403)
-
-    if vet:
-        if treatment.vet and str(treatment.vet.id) != str(vet.id):
-            return error_response("Not allowed", 403)
-        if not treatment.vet and treatment.status != "pending":
-            return error_response("Not allowed", 403)
-
-    # ✅ BUILD MEDICINES WITH NAMES
-    medicines_response = []
-    for pm in treatment.medicines:
-        medicines_response.append({
-            "medicine_id": str(pm.medicine.id),
-            "medicine_name": pm.medicine.name,   # ✅ FIX
-            "dosage": pm.dosage,
-            "frequency": pm.frequency,
-            "duration_days": pm.duration_days,
-            "withdrawal_period_days": pm.withdrawal_period_days
-        })
-
-    response = {
-        "treatment_id": str(treatment.id),
-        "status": treatment.status,
-        "symptoms": treatment.symptoms,
-        "notes": treatment.notes,
-        "animal_id": str(treatment.animal.id),
-        "vet_id": str(treatment.vet.id) if treatment.vet else None,
-        "medicines": medicines_response,
-        "is_withdrawal_completed": treatment.is_withdrawal_completed,
-        "is_flagged_violation": treatment.is_flagged_violation,
-        "created_at": treatment.created_at,
-        "updated_at": treatment.updated_at,
+    treatment_data = {
+        "farmer_id": farmer_id,
+        "animal_id": animal_id,
+        "symptoms": symptoms,
+        "notes": data.get("notes"),
+        "status": "pending"
     }
 
-    return success_response(response, 200)
+    try:
+        result = sb.table("treatments").insert(treatment_data).execute()
+        return success_response(result.data[0] if result.data else {}, 201)
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
+# ============================================================
+# GET /treatments/<id> — Get single treatment
+# ============================================================
+@treatments_bp.route('/<treatment_id>', methods=['GET'])
+@require_auth
+def get_treatment(treatment_id):
+    sb = get_supabase()
+    try:
+        result = sb.table("treatments").select("*").eq("id", treatment_id).single().execute()
+        if not result.data:
+            return error_response("Treatment not found", 404)
+
+        # Fetch prescribed medicines for this treatment
+        meds = sb.table("prescribed_medicines") \
+            .select("*, authorized_medicines(name)") \
+            .eq("treatment_id", treatment_id).execute()
+
+        treatment = result.data
+        treatment["medicines"] = meds.data if meds.data else []
+
+        return success_response(treatment, 200)
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-# ------------------------------------------------------------
-# 3) VET DIAGNOSES TREATMENT (CRITICAL LOGIC)
-# ------------------------------------------------------------
-
-
+# ============================================================
+# PUT /treatments/<id>/diagnose — Vet diagnoses treatment
+# ============================================================
 @treatments_bp.route('/<treatment_id>/diagnose', methods=['PUT'])
-@jwt_required()
+@require_auth
 def diagnose_treatment(treatment_id):
-    print(f"\n[TREATMENT] diagnose_treatment CALLED: {treatment_id}")
-
     data = request.get_json() or {}
-    vet_id = get_jwt_identity()
+    sb = get_supabase()
+    user_id = g.user["id"]
 
-    # -----------------------------
-    # AUTH CHECK
-    # -----------------------------
-    vet = Vet.objects(id=vet_id).first()
-    if not vet:
+    # Check vet identity
+    vet_result = sb.table("vets").select("id").eq("user_id", user_id).execute()
+    if not vet_result.data:
         return error_response("Only vets can diagnose", 403)
 
-    treatment = Treatment.objects(id=treatment_id).first()
-    if not treatment:
+    vet_id = vet_result.data[0]["id"]
+
+    # Get treatment
+    treatment_result = sb.table("treatments").select("*").eq("id", treatment_id).single().execute()
+    if not treatment_result.data:
         return error_response("Treatment not found", 404)
 
-    if treatment.status != "pending":
+    treatment = treatment_result.data
+    if treatment["status"] != "pending":
         return error_response("Already diagnosed", 400)
 
-    medicines_input = data.get("medicines")
-    if not medicines_input or not isinstance(medicines_input, list):
+    medicines_input = data.get("medicines", [])
+    if not medicines_input:
         return error_response("Medicines list required", 400)
 
-    prescribed = []
-    max_withdrawal_days = 0  # 🔴 STRICTEST RULE (IMPORTANT)
+    max_withdrawal_days = 0
 
-    # -----------------------------
-    # PROCESS MEDICINES
-    # -----------------------------
+    # Process medicines
     for m in medicines_input:
         medicine_id = m.get("medicine_id")
         if not medicine_id:
             return error_response("medicine_id is required", 400)
 
-        authorized = AuthorizedMedicine.objects(id=medicine_id).first()
-        if not authorized:
+        # Get authorized medicine
+        auth_med = sb.table("authorized_medicines").select("*").eq("id", medicine_id).single().execute()
+        if not auth_med.data:
             return error_response("Unauthorized medicine selected", 400)
 
+        authorized = auth_med.data
         vet_days = m.get("vet_withdrawal_days")
-
-        # -----------------------------
-        # SAFETY WITHDRAWAL FORMULA
-        # -----------------------------
-        final_withdrawal_days = authorized.withdrawal_period_days
+        final_withdrawal_days = authorized["withdrawal_period_days"]
 
         if vet_days is not None:
-            if vet_days < authorized.withdrawal_period_days:
-                print(
-                    f"[SAFETY] Vet tried to reduce withdrawal "
-                    f"({vet_days} < {authorized.withdrawal_period_days}) → BLOCKED"
-                )
-                final_withdrawal_days = authorized.withdrawal_period_days
+            if vet_days < authorized["withdrawal_period_days"]:
+                final_withdrawal_days = authorized["withdrawal_period_days"]
             else:
                 final_withdrawal_days = vet_days
 
-        print(
-            f"[MEDICINE] {authorized.name}: "
-            f"authorized={authorized.withdrawal_period_days}, "
-            f"vet={vet_days}, "
-            f"final={final_withdrawal_days}"
-        )
-
-        prescribed.append(
-            PrescribedMedicine(
-                medicine=authorized,               
-                dosage=authorized.dosage,
-                frequency=authorized.frequency,
-                duration_days=authorized.duration_days,
-                withdrawal_period_days=final_withdrawal_days
-            )
-        )
+        # Insert prescribed medicine
+        sb.table("prescribed_medicines").insert({
+            "treatment_id": treatment_id,
+            "medicine_id": medicine_id,
+            "dosage": authorized["dosage"],
+            "frequency": authorized["frequency"],
+            "duration_days": authorized["duration_days"],
+            "withdrawal_period_days": final_withdrawal_days
+        }).execute()
 
         max_withdrawal_days = max(max_withdrawal_days, final_withdrawal_days)
 
-    # -----------------------------
-    # SAVE TREATMENT
-    # -----------------------------
-    treatment.vet = vet
-    treatment.medicines = prescribed
-    treatment.notes = data.get("notes")
-    treatment.status = "diagnosed"
-    treatment.treatment_start_date = datetime.utcnow()
-    treatment.save()
+    # Update treatment
+    now = datetime.utcnow().isoformat()
+    withdrawal_end = (datetime.utcnow() + timedelta(days=max_withdrawal_days)).isoformat()
 
-    # -----------------------------
-    # CREATE WITHDRAWAL ALERT
-    # -----------------------------
-    WithdrawalService.create_withdrawal_alert(
-        treatment_id=str(treatment.id),
-        animal_id=str(treatment.animal.id),
-        withdrawal_days=max_withdrawal_days
-    )
+    sb.table("treatments").update({
+        "vet_id": vet_id,
+        "diagnosis": data.get("diagnosis"),
+        "notes": data.get("notes"),
+        "status": "diagnosed",
+        "treatment_start_date": now,
+        "withdrawal_ends_on": withdrawal_end,
+    }).eq("id", treatment_id).execute()
 
-    print(
-        f"[WITHDRAWAL] Final withdrawal applied = {max_withdrawal_days} days "
-        f"(strictest medicine rule)"
-    )
+    # Create withdrawal alert
+    sb.table("withdrawal_alerts").insert({
+        "treatment_id": treatment_id,
+        "animal_id": treatment["animal_id"],
+        "safe_from": withdrawal_end
+    }).execute()
 
-    # -----------------------------
-    # RESPONSE WITH MEDICINE NAMES
-    # -----------------------------
-    medicines_response = []
-    for pm in treatment.medicines:
-        medicines_response.append({
-            "medicine_id": str(pm.medicine.id),
-            "medicine_name": pm.medicine.name,
-            "dosage": pm.dosage,
-            "frequency": pm.frequency,
-            "duration_days": pm.duration_days,
-            "withdrawal_period_days": pm.withdrawal_period_days
-        })
-    print(medicines_response)
+    # Fetch updated treatment
+    updated = sb.table("treatments").select("*").eq("id", treatment_id).single().execute()
+    meds = sb.table("prescribed_medicines") \
+        .select("*, authorized_medicines(name)") \
+        .eq("treatment_id", treatment_id).execute()
 
-    response = {
-        "treatment_id": str(treatment.id),
-        "status": treatment.status,
-        "diagnosis": treatment.diagnosis,
-        "animal_id": str(treatment.animal.id),
-        "vet_id": str(vet.id),
-        "treatment_start_date": treatment.treatment_start_date,
-        "notes": treatment.notes,
-        "medicines": medicines_response,
-        "final_withdrawal_days": max_withdrawal_days
-    }
+    response = updated.data
+    response["medicines"] = meds.data if meds.data else []
+    response["final_withdrawal_days"] = max_withdrawal_days
 
     return success_response(response, 200)
 
-# ------------------------------------------------------------
-# 4) GET ALL TREATMENTS FOR AN ANIMAL
-# ------------------------------------------------------------
+
+# ============================================================
+# GET /treatments/animal/<id> — All treatments for an animal
+# ============================================================
 @treatments_bp.route('/animal/<animal_id>', methods=['GET'])
-@jwt_required()
+@require_auth
 def get_treatments_by_animal(animal_id):
-    print(f"\n[TREATMENT] get_treatments_by_animal CALLED: {animal_id}")
-
-    user_id = get_jwt_identity()
-    farmer = Farmer.objects(id=user_id).first()
-    vet = Vet.objects(id=user_id).first()
-
-    animal = Animal.objects(id=animal_id).first()
-    if not animal:
-        return error_response("Animal not found", 404)
-
-    if farmer and str(animal.farmer.id) != str(farmer.id):
-        return error_response("Not allowed", 403)
-
-    query = Q(animal=animal)
-    if vet:
-        query &= (Q(vet=vet) | Q(status="pending"))
-
-    treatments = Treatment.objects(query)
-    print(f"[TREATMENT] treatments found = {treatments.count()}")
-
-    return success_response([t.to_json() for t in treatments], 200)
+    sb = get_supabase()
+    try:
+        result = sb.table("treatments").select("*") \
+            .eq("animal_id", animal_id) \
+            .order("created_at", desc=True).execute()
+        return success_response(result.data, 200)
+    except Exception as e:
+        return error_response(str(e), 500)
 
 
-# ------------------------------------------------------------
-# 5) GET ALL TREATMENTS FOR A FARMER (VET ONLY)
-# ------------------------------------------------------------
+# ============================================================
+# GET /treatments/farmer/<id> — All treatments for a farmer
+# ============================================================
 @treatments_bp.route('/farmer/<farmer_id>', methods=['GET'])
-@jwt_required()
+@require_auth
 def get_treatments_by_farmer(farmer_id):
-    print(f"\n[TREATMENT] get_treatments_by_farmer CALLED: {farmer_id}")
+    sb = get_supabase()
+    try:
+        result = sb.table("treatments").select("*") \
+            .eq("farmer_id", farmer_id) \
+            .order("created_at", desc=True).execute()
+        return success_response(result.data, 200)
+    except Exception as e:
+        return error_response(str(e), 500)
 
-    user_id = get_jwt_identity()
 
-    # ✅ Only vets allowed
-    vet = Vet.objects(id=user_id).first()
-    if not vet:
-        return error_response("Only veterinarians can access this", 403)
-
-    farmer = Farmer.objects(id=farmer_id).first()
-    if not farmer:
-        return error_response("Farmer not found", 404)
-
-    query = Q(farmer=farmer) & (Q(status="pending") | Q(vet=vet))
-    treatments = Treatment.objects(query).order_by("-created_at")
-
-    print(f"[TREATMENT] treatments found = {treatments.count()}")
-
-    data = []
-    for t in treatments:
-        data.append({
-            "treatment_id": str(t.id),
-            "status": t.status,
-
-            # ✅ SAFE ONLY
-            "animal_id": str(t.animal.id) if t.animal else None,
-
-            "symptoms": t.symptoms,
-            "notes": t.notes,
-            "created_at": t.created_at,
-            "diagnosed_by_vet": bool(t.vet),
-        })
-
-    return success_response(data, 200)
+# ============================================================
+# GET /treatments/ — All treatments (authority only)
+# ============================================================
+@treatments_bp.route('/', methods=['GET'])
+@require_auth
+def get_all_treatments():
+    sb = get_supabase()
+    try:
+        result = sb.table("treatments").select("*").order("created_at", desc=True).execute()
+        return success_response(result.data, 200)
+    except Exception as e:
+        return error_response(str(e), 500)

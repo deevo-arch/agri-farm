@@ -131,7 +131,9 @@
 
 /* ========== TABLE ========== */
 .table-card {
-  background: var(--bg-card);
+  background: #f0f5ed !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
   border-radius: 20px;
   box-shadow: var(--neu-shadow-raised);
   padding: 12px;

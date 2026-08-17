@@ -10,12 +10,35 @@ import FarmerVerification from "./pages/FarmerVerification";
 import VetRecords from "./pages/VetRecords";
 import HelpDocumentation from "./pages/HelpDocumentation";
 import AdminInvites from "./pages/AdminInvites";
+import AuthCallback from "./pages/AuthCallback";
 import ParticlePreloader from "./components/ParticlePreloader";
 import { AuthProvider, useAuthContext } from "./context/AuthContext";
 
 function Protected({ children }: { children: JSX.Element }) {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isLoading } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', background: '#e8f0e4', color: '#2d8f4e',
+        fontSize: '18px', fontWeight: 700, fontFamily: 'Plus Jakarta Sans, sans-serif'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
   if (!isAuthenticated) return <Navigate to="/" replace />;
+  return children;
+}
+
+/** Consumer users can only access the Dashboard */
+function ConsumerGuard({ children }: { children: JSX.Element }) {
+  const { user } = useAuthContext();
+  if (user?.role === 'consumer') {
+    return <Navigate to="/dashboard" replace />;
+  }
   return children;
 }
 
@@ -25,6 +48,7 @@ export default function App() {
       <ParticlePreloader />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route
           element={
@@ -34,14 +58,14 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/treatments" element={<TreatmentLog />} />
-          <Route path="/farmers" element={<FarmerRecords />} />
-          <Route path="/vet-verification" element={<VetVerification />} />
-          <Route path="/farmer-verification" element={<FarmerVerification />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/vet-records" element={<VetRecords />} />
+          <Route path="/treatments" element={<ConsumerGuard><TreatmentLog /></ConsumerGuard>} />
+          <Route path="/farmers" element={<ConsumerGuard><FarmerRecords /></ConsumerGuard>} />
+          <Route path="/vet-verification" element={<ConsumerGuard><VetVerification /></ConsumerGuard>} />
+          <Route path="/farmer-verification" element={<ConsumerGuard><FarmerVerification /></ConsumerGuard>} />
+          <Route path="/reports" element={<ConsumerGuard><Reports /></ConsumerGuard>} />
+          <Route path="/vet-records" element={<ConsumerGuard><VetRecords /></ConsumerGuard>} />
           <Route path="/help" element={<HelpDocumentation />} />
-          <Route path="/admin-invites" element={<AdminInvites />} />
+          <Route path="/admin-invites" element={<ConsumerGuard><AdminInvites /></ConsumerGuard>} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

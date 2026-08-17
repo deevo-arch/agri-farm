@@ -15,6 +15,7 @@ import {
   Filter
 } from "lucide-react";
 import "../styles/VetRecords.css";
+import VideoPreloader from "../components/VideoPreloader";
 import { dashboardAPI, Vet } from "../services/api";
 import { useAuthContext } from "../context/AuthContext";
 import { CustomToast, ToastConfig } from "../components/CustomToast";
@@ -285,13 +286,19 @@ export default function VetRecords() {
   });
 
   const [toast, setToast] = useState<ToastConfig | null>(null);
+  const [selectedDocVet, setSelectedDocVet] = useState<VetRecord | null>(null);
 
   const handleViewDocuments = (vetId: string) => {
-    setToast({
-      type: 'info',
-      title: 'Veterinary Council Records',
-      message: `Fetching verified council registration & license documents for Vet ID #${vetId}...`
-    });
+    const vet = vetData.find(v => v.id === vetId) || mockVetData.find(v => v.id === vetId);
+    if (vet) {
+      setSelectedDocVet(vet);
+    } else {
+      setToast({
+        type: 'info',
+        title: 'Veterinary Council Records',
+        message: `Fetching verified council registration & license documents for Vet ID #${vetId}...`
+      });
+    }
   };
 
   // Calculate stats
@@ -341,12 +348,7 @@ export default function VetRecords() {
       )}
 
       {/* Loading State */}
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-          <p>Loading veterinarian data...</p>
-        </div>
-      )}
+      {loading && <VideoPreloader message="Fetching Veterinarian Records..." subtext="Syncing verified medical credentials with database" />}
 
       {/* Stats Cards */}
       <div className="vet-stats">
@@ -613,6 +615,72 @@ export default function VetRecords() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {selectedDocVet && (
+        <div className="doc-modal-backdrop" onClick={() => setSelectedDocVet(null)}>
+          <div className="doc-modal-card neu-card" onClick={(e) => e.stopPropagation()}>
+            <div className="doc-modal-header">
+              <div className="doc-header-title">
+                <FileText className="text-green-600" size={24} />
+                <div>
+                  <h3>Veterinary Council Registration Certificate</h3>
+                  <p>Official Government Verification Record</p>
+                </div>
+              </div>
+              <button className="doc-close-btn neu-btn" onClick={() => setSelectedDocVet(null)}>✕</button>
+            </div>
+
+            <div className="doc-certificate-body neu-inset">
+              <div className="cert-watermark">STATE VET COUNCIL</div>
+              <div className="cert-badge-row">
+                <span className="cert-verified-stamp">✓ COUNCIL VERIFIED</span>
+                <span className="cert-id">REG ID: {selectedDocVet.registration}</span>
+              </div>
+              <div className="cert-details-grid">
+                <div className="cert-detail">
+                  <label>Veterinarian Name</label>
+                  <strong>{selectedDocVet.name}</strong>
+                </div>
+                <div className="cert-detail">
+                  <label>Practice License ID</label>
+                  <strong>{selectedDocVet.id}</strong>
+                </div>
+                <div className="cert-detail">
+                  <label>Specialization</label>
+                  <strong>{selectedDocVet.specialization}</strong>
+                </div>
+                <div className="cert-detail">
+                  <label>Clinic Location</label>
+                  <strong>{selectedDocVet.location}, {selectedDocVet.city}</strong>
+                </div>
+                <div className="cert-detail">
+                  <label>Registered Phone</label>
+                  <strong>{selectedDocVet.phone}</strong>
+                </div>
+                <div className="cert-detail">
+                  <label>Verification Status</label>
+                  <strong className={selectedDocVet.status === 'Verified' ? 'text-green-600' : 'text-amber-600'}>
+                    {selectedDocVet.status}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="doc-modal-actions">
+              <button 
+                className="btn-primary-neu"
+                onClick={() => {
+                  alert(`Downloading Official Veterinary Certificate for ${selectedDocVet.name}...`);
+                }}
+              >
+                Download PDF Certificate
+              </button>
+              <button className="neu-btn" onClick={() => setSelectedDocVet(null)}>Close</button>
+            </div>
+          </div>
         </div>
       )}
 

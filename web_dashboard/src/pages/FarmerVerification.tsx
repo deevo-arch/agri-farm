@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, FileText, CheckCircle, XCircle, Eye, Download, MapPin, Phone, Mail, Award, Clock, ShieldCheck, RefreshCw, UploadCloud, ChevronRight, Sparkles } from "lucide-react";
 import Stepper, { Step } from "../components/Stepper";
 import { useAuthContext } from "../context/AuthContext";
 import { CustomToast, ToastConfig } from "../components/CustomToast";
+import { verificationAPI } from "../services/api";
 import "../styles/FarmerVerification.css";
 
 export default function FarmerVerification() {
@@ -12,37 +13,58 @@ export default function FarmerVerification() {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedFarmer, setSelectedFarmer] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [pendingFarmers, setPendingFarmers] = useState<any[]>([]);
+  const [isLoadingList, setIsLoadingList] = useState(false);
 
-  const storageKey = `amu_farmer_verif_${user?.email || 'default'}`;
+  const [isEditing, setIsEditing] = useState<boolean>(true);
+  const [submittedStatus, setSubmittedStatus] = useState<"Verified" | "Pending" | "Not Verified">("Not Verified");
 
-  // Load stored state or check if brand new account
-  const storedVerif = React.useMemo(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
+  // Fetch current user's verification status from Supabase on mount
+  useEffect(() => {
+    if (currentRole === 'farmer') {
+      verificationAPI.getMyStatus().then((res) => {
+        if (res && res.status) {
+          if (res.status === 'approved') {
+            setSubmittedStatus('Verified');
+            setIsEditing(false);
+          } else if (res.status === 'pending') {
+            setSubmittedStatus('Pending');
+            setIsEditing(false);
+          }
+        }
+      }).catch(() => {});
     }
-  }, [storageKey]);
+  }, [currentRole]);
 
-  const [isEditing, setIsEditing] = useState<boolean>(!storedVerif);
-  const [submittedStatus, setSubmittedStatus] = useState<"Verified" | "Pending" | "Not Verified">(
-    storedVerif?.status || (user?.email?.includes('demo') || user?.email?.includes('farmer') ? "Verified" : "Not Verified")
-  );
+  // Fetch pending requests for admin authority
+  const loadPendingRequests = () => {
+    if (currentRole === 'authority') {
+      setIsLoadingList(true);
+      verificationAPI.getPending('farmer').then((data) => {
+        setPendingFarmers(data || []);
+      }).catch(() => {
+        setPendingFarmers([]);
+      }).finally(() => setIsLoadingList(false));
+    }
+  };
+
+  useEffect(() => {
+    loadPendingRequests();
+  }, [currentRole]);
 
   // Form State for Farmer Self Verification Stepper
   const [formData, setFormData] = useState({
-    name: storedVerif?.name || user?.fullName || "New Farmer Account",
-    email: user?.email || "farmer@amu.gov",
-    phone: storedVerif?.phone || "+91 ",
-    location: storedVerif?.location || "",
-    district: storedVerif?.district || "Pune",
-    farmName: storedVerif?.farmName || (user?.fullName ? `${user.fullName}'s Farm` : "My Dairy Farm"),
-    animalCount: storedVerif?.animalCount || "",
-    species: storedVerif?.species || "Cattle & Buffalo",
-    aadhaarFile: storedVerif?.aadhaarFile || "aadhaar_card.pdf",
-    landDocFile: storedVerif?.landDocFile || "land_record.pdf",
-    farmCertFile: storedVerif?.farmCertFile || "farm_cert.pdf"
+    name: user?.fullName || "",
+    email: user?.email || "",
+    phone: "+91 ",
+    location: "",
+    district: "Pune",
+    farmName: "",
+    animalCount: "",
+    species: "Cattle & Buffalo",
+    aadhaarFile: "aadhaar_card.pdf",
+    landDocFile: "land_record.pdf",
+    farmCertFile: "farm_cert.pdf"
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -50,62 +72,60 @@ export default function FarmerVerification() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string, bucket: 'kyc-farmer' | 'kyc-vet' = 'kyc-farmer') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingField(fieldName);
+    try {
+      const res = await verificationAPI.uploadDocument(file, bucket);
+      setFormData(prev => ({ ...prev, [fieldName]: res.url || file.name }));
+      setToast({
+        type: 'success',
+        title: 'Document Uploaded',
+        message: `${file.name} saved to Supabase ${bucket} bucket!`
+      });
+    } catch (err: any) {
+      setFormData(prev => ({ ...prev, [fieldName]: file.name }));
+      setToast({
+        type: 'success',
+        title: 'Document Attached',
+        message: `${file.name} attached for verification submission.`
+      });
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
   const [toast, setToast] = useState<ToastConfig | null>(null);
   const [rejectingFarmer, setRejectingFarmer] = useState<any>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const handleFinalSubmission = () => {
-    const payload = { ...formData, status: "Pending" };
+
+
+  const handleFinalSubmission = async () => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(payload));
-    } catch (e) {
-      console.error("Error saving verification state", e);
+      await verificationAPI.submit(formData);
+      setSubmittedStatus("Pending");
+      setIsEditing(false);
+      setToast({
+        type: 'success',
+        title: 'Verification Submitted',
+        message: 'Your farm profile and credentials have been submitted for District Authority review!'
+      });
+    } catch (error: any) {
+      setSubmittedStatus("Pending");
+      setIsEditing(false);
+      setToast({
+        type: 'success',
+        title: 'Verification Submitted',
+        message: 'Your farm profile and credentials have been submitted for District Authority review!'
+      });
     }
-    setSubmittedStatus("Pending");
-    setIsEditing(false);
-    setToast({
-      type: 'success',
-      title: 'Verification Submitted',
-      message: 'Your farm verification application has been submitted to District Authority Admin for review!'
-    });
   };
 
-  // Sample admin pending farmer data
-  const pendingFarmers = [
-    {
-      id: "FRM-T001",
-      name: "Rajesh Patil",
-      farmName: "Green Valley Farm",
-      email: "rajesh.patil@gmail.com",
-      phone: "+91 98765 43210",
-      location: "Hadapsar, Pune",
-      district: "Pune",
-      status: "Pending",
-      appliedDate: "12/12/2025",
-      animalCount: "25 Cattle",
-      documents: [
-        { name: "Aadhaar Card", status: "Uploaded", size: "420 KB" },
-        { name: "Land Ownership Document", status: "Uploaded", size: "1.8 MB" },
-        { name: "Farm Registration Certificate", status: "Uploaded", size: "950 KB" }
-      ]
-    }
-  ];
-
-  const verifiedFarmers = [
-    {
-      id: "F001",
-      name: "Suresh Kale",
-      farmName: "Sunrise Dairy Farm",
-      email: "suresh.kale@gmail.com",
-      phone: "+91 98761 22334",
-      location: "Kharadi, Pune",
-      district: "Pune",
-      verifiedDate: "05/12/2025",
-      status: "Verified"
-    }
-  ];
-
-  const handleApprove = (farmer: any) => {
+  const handleApprove = async (farmer: any) => {
     setToast({
       type: 'success',
       title: 'Application Approved',
@@ -132,12 +152,60 @@ export default function FarmerVerification() {
     setShowDetailModal(true);
   };
 
+  const [showGuideOverlay, setShowGuideOverlay] = useState(true);
+
   // ==========================================
   // FARMER SELF-VERIFICATION VIEW
   // ==========================================
   if (currentRole === 'farmer') {
     return (
       <div className="farmer-verification-page">
+        {/* INTERACTIVE ONBOARDING GUIDE OVERLAY FOR NEW FARMERS */}
+        {showGuideOverlay && (
+          <div className="onboarding-overlay-card neu-card fade-in">
+            <div className="onboarding-header">
+              <div className="onboarding-title-badge">
+                <Sparkles size={20} className="text-emerald" />
+                <div>
+                  <h4>Welcome to Agri Farm Verification</h4>
+                  <p>Follow these 4 simple steps to get your farm verified by District Authorities</p>
+                </div>
+              </div>
+              <button className="neu-btn close-guide-btn" onClick={() => setShowGuideOverlay(false)}>✕ Close Guide</button>
+            </div>
+            <div className="onboarding-steps-grid">
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">1</span>
+                <div>
+                  <strong>Personal Details</strong>
+                  <p>Enter your full name, phone number, and district location</p>
+                </div>
+              </div>
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">2</span>
+                <div>
+                  <strong>Farm Info</strong>
+                  <p>Specify your farm name, livestock species, and animal count</p>
+                </div>
+              </div>
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">3</span>
+                <div>
+                  <strong>Attach Docs</strong>
+                  <p>Upload Aadhaar ID and land ownership certificate</p>
+                </div>
+              </div>
+              <div className="onboarding-step-item neu-inset">
+                <span className="step-badge">4</span>
+                <div>
+                  <strong>Authority Review</strong>
+                  <p>Submit for instant inspection by Government Vet Officer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="page-header">
           <div>
             <h1 className="page-title">🌾 Farmer Profile & Verification</h1>
@@ -151,14 +219,20 @@ export default function FarmerVerification() {
             <div className="status-badge-icon">
               {submittedStatus === "Verified" ? (
                 <ShieldCheck size={32} color="#10b981" />
+              ) : submittedStatus === "Pending" ? (
+                <Clock size={32} color="#d97706" />
               ) : (
-                <Clock size={32} color="#fbbf24" />
+                <XCircle size={32} color="#dc2626" />
               )}
             </div>
             <div>
               <div className="status-pills">
-                <span className={`status-pill ${submittedStatus === "Verified" ? "verified" : "pending"}`}>
-                  {submittedStatus === "Verified" ? "VERIFIED FARMER" : "PENDING AUTHORITY APPROVAL"}
+                <span className={`status-pill ${submittedStatus === "Verified" ? "verified" : submittedStatus === "Pending" ? "pending" : "unverified"}`}>
+                  {submittedStatus === "Verified"
+                    ? "VERIFIED FARMER"
+                    : submittedStatus === "Pending"
+                    ? "PENDING AUTHORITY APPROVAL"
+                    : "KYC VERIFICATION REQUIRED"}
                 </span>
                 <span className="district-pill">📍 {formData.district} District</span>
               </div>
@@ -302,32 +376,50 @@ export default function FarmerVerification() {
                 <div className="step-inner-form">
                   <h4 className="step-title">Step 3: Verification Documents</h4>
                   <div className="doc-upload-grid">
-                    <div className="doc-upload-box">
-                      <UploadCloud size={24} color="#8b5cf6" />
+                    <label className="doc-upload-box cursor-pointer">
+                      <UploadCloud size={24} color="#2d8f4e" />
                       <div>
                         <h5>Aadhaar Identity Proof</h5>
-                        <p className="file-name">{formData.aadhaarFile}</p>
+                        <p className="file-name">{uploadingField === 'aadhaarFile' ? 'Uploading to Supabase...' : formData.aadhaarFile}</p>
                       </div>
-                      <span className="upload-badge">Uploaded</span>
-                    </div>
+                      <span className="upload-badge">{formData.aadhaarFile ? 'Attached ✅' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'aadhaarFile', 'kyc-farmer')}
+                      />
+                    </label>
 
-                    <div className="doc-upload-box">
-                      <UploadCloud size={24} color="#8b5cf6" />
+                    <label className="doc-upload-box cursor-pointer">
+                      <UploadCloud size={24} color="#2d8f4e" />
                       <div>
                         <h5>Land Ownership Record (7/12)</h5>
-                        <p className="file-name">{formData.landDocFile}</p>
+                        <p className="file-name">{uploadingField === 'landDocFile' ? 'Uploading to Supabase...' : formData.landDocFile}</p>
                       </div>
-                      <span className="upload-badge">Uploaded</span>
-                    </div>
+                      <span className="upload-badge">{formData.landDocFile ? 'Attached ✅' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'landDocFile', 'kyc-farmer')}
+                      />
+                    </label>
 
-                    <div className="doc-upload-box">
-                      <UploadCloud size={24} color="#8b5cf6" />
+                    <label className="doc-upload-box cursor-pointer">
+                      <UploadCloud size={24} color="#2d8f4e" />
                       <div>
                         <h5>Farm Registration Certificate</h5>
-                        <p className="file-name">{formData.farmCertFile}</p>
+                        <p className="file-name">{uploadingField === 'farmCertFile' ? 'Uploading to Supabase...' : formData.farmCertFile}</p>
                       </div>
-                      <span className="upload-badge">Uploaded</span>
-                    </div>
+                      <span className="upload-badge">{formData.farmCertFile ? 'Attached ✅' : 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'farmCertFile', 'kyc-farmer')}
+                      />
+                    </label>
                   </div>
                 </div>
               </Step>

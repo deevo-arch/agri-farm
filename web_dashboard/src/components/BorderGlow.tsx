@@ -78,14 +78,14 @@ const BorderGlow: React.FC<BorderGlowProps> = ({
   children,
   className = '',
   edgeSensitivity = 30,
-  glowColor = '270 80 70',
-  backgroundColor = '#13111c',
+  glowColor = '140 60 45',
+  backgroundColor = '#f0f5ed',
   borderRadius = 20,
   glowRadius = 35,
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
-  colors = ['#8b5cf6', '#c084fc', '#38bdf8'],
+  colors = ['#2d8f4e', '#4ade80', '#16a34a'],
   fillOpacity = 0.5,
   style
 }) => {
