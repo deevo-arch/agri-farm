@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext, UserRole } from "../context/AuthContext";
+import { validateAndRedeemAdminCode } from "../services/adminInviteService";
 import ParticleText from "./ParticleText";
 import BorderGlow from "./BorderGlow";
 import ReflectiveCard from "./ReflectiveCard";
@@ -112,9 +113,9 @@ export default function AuthModal({
           return;
         }
         if (selectedRole === 'authority') {
-          const cleanCode = adminInviteCode.replace(/[\s-]/g, '');
-          if (!cleanCode || cleanCode.length !== 12) {
-            setErrorMessage("Admin Authority registration requires a valid 12-digit Invite Code.");
+          const check = validateAndRedeemAdminCode(adminInviteCode, email);
+          if (!check.success) {
+            setErrorMessage(check.message);
             setIsLoading(false);
             return;
           }
