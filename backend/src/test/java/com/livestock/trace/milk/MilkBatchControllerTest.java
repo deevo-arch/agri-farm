@@ -13,6 +13,7 @@ import com.livestock.trace.livestock.Species;
 import com.livestock.trace.livestock.dto.LivestockCreateRequest;
 import com.livestock.trace.livestock.dto.LivestockResponse;
 import com.livestock.trace.milk.dto.MilkBatchCreateRequest;
+import com.livestock.trace.security.AuthenticatedUser;
 import com.livestock.trace.security.JwtService;
 import com.livestock.trace.treatment.TreatmentService;
 import com.livestock.trace.treatment.dto.MedicationCreateRequest;
@@ -48,9 +49,10 @@ class MilkBatchControllerTest {
     @Autowired private JwtService jwtService;
 
     private Long farmerId;
-    private Long vetId;
     private Long farmId;
     private String farmerAuthHeader;
+    private AuthenticatedUser farmerPrincipal;
+    private AuthenticatedUser vetPrincipal;
 
     @BeforeEach
     void setUp() {
@@ -64,9 +66,10 @@ class MilkBatchControllerTest {
                 farmService.createFarm(new FarmCreateRequest("Test Farm", "Testville", farmer.id()));
 
         farmerId = farmer.id();
-        vetId = vet.id();
         farmId = farm.id();
         farmerAuthHeader = "Bearer " + jwtService.generateToken(userService.getById(farmerId));
+        farmerPrincipal = new AuthenticatedUser(farmer.id(), farmer.email(), Role.FARMER);
+        vetPrincipal = new AuthenticatedUser(vet.id(), vet.email(), Role.VET);
     }
 
     private String uniqueEmail(String prefix) {
@@ -76,7 +79,8 @@ class MilkBatchControllerTest {
     private Long createLivestock(String tag) {
         LivestockResponse livestock =
                 livestockService.createLivestock(
-                        new LivestockCreateRequest(tag, Species.COW, LocalDate.of(2022, 1, 1), farmId));
+                        new LivestockCreateRequest(tag, Species.COW, LocalDate.of(2022, 1, 1), farmId),
+                        farmerPrincipal);
         return livestock.id();
     }
 
@@ -106,7 +110,8 @@ class MilkBatchControllerTest {
         Long cowId = createLivestock("COW-2");
         treatmentService.createVaccination(
                 new VaccinationCreateRequest(
-                        cowId, null, vetId, "FMD", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 15)));
+                        cowId, null, "FMD", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 15)),
+                vetPrincipal);
 
         MilkBatchCreateRequest request =
                 new MilkBatchCreateRequest(
@@ -133,11 +138,11 @@ class MilkBatchControllerTest {
                 new MedicationCreateRequest(
                         cowId,
                         null,
-                        vetId,
                         "Antibiotic",
                         "10ml",
                         LocalDate.of(2026, 1, 1),
-                        LocalDate.of(2026, 1, 20)));
+                        LocalDate.of(2026, 1, 20)),
+                vetPrincipal);
 
         MilkBatchCreateRequest request =
                 new MilkBatchCreateRequest(
@@ -162,7 +167,8 @@ class MilkBatchControllerTest {
         Long cowId = createLivestock("COW-4");
         treatmentService.createVaccination(
                 new VaccinationCreateRequest(
-                        cowId, null, vetId, "FMD", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 10)));
+                        cowId, null, "FMD", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 10)),
+                vetPrincipal);
 
         MilkBatchCreateRequest request =
                 new MilkBatchCreateRequest(
@@ -249,5 +255,61 @@ class MilkBatchControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(second)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void rejects_whenFarmBelongsToAnotherFarmer() throws Exception {
+        UserResponse farmerB =
+                userService.createUser(
+                        new UserCreateRequest("Farmer B", uniqueEmail("farmer-b"), "pass1234", Role.FARMER));
+        FarmResponse farmB =
+                farmService.createFarm(new FarmCreateRequest("Farm B", "Elsewhere", farmerB.id()));
+        AuthenticatedUser farmerBPrincipal = new AuthenticatedUser(farmerB.id(), farmerB.email(), Role.FARMER);
+        LivestockResponse cowB =
+                livestockService.createLivestock(
+                        new LivestockCreateRequest("COW-B1", Species.COW, LocalDate.of(2022, 1, 1), farmB.id()),
+                        farmerBPrincipal);
+
+        MilkBatchCreateRequest request =
+                new MilkBatchCreateRequest(
+                        "BATCH-CROSS",
+                        farmB.id(),
+                        farmerId,
+                        LocalDate.of(2026, 1, 10),
+                        new BigDecimal("10.00"),
+                        Set.of(cowB.id()));
+
+        mockMvc.perform(
+                        post("/api/milk-batches")
+                                .header(HttpHeaders.AUTHORIZATION, farmerAuthHeader)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"));
+    }
+
+    @Test
+    void admin_canCreateMilkBatchForAnotherFarmersFarm() throws Exception {
+        UserResponse admin =
+                userService.createUser(
+                        new UserCreateRequest("Admin User", uniqueEmail("admin"), "pass1234", Role.ADMIN));
+        String adminAuthHeader = "Bearer " + jwtService.generateToken(userService.getById(admin.id()));
+
+        Long cowId = createLivestock("COW-ADMIN");
+        MilkBatchCreateRequest request =
+                new MilkBatchCreateRequest(
+                        "BATCH-ADMIN",
+                        farmId,
+                        farmerId,
+                        LocalDate.of(2026, 1, 10),
+                        new BigDecimal("10.00"),
+                        Set.of(cowId));
+
+        mockMvc.perform(
+                        post("/api/milk-batches")
+                                .header(HttpHeaders.AUTHORIZATION, adminAuthHeader)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
     }
 }

@@ -8,4 +8,8 @@ public interface VetVisitRepository extends JpaRepository<VetVisit, Long> {
     List<VetVisit> findByLivestockId(Long livestockId);
 
     List<VetVisit> findByVetId(Long vetId);
+
+    List<VetVisit> findByRequestedById(Long requestedById);
+
+    List<VetVisit> findByStatus(VetVisitStatus status);
 }

@@ -75,6 +75,10 @@ export default function MilkBatchDetailPage() {
       )}
 
       <h1>{batch.batchCode}</h1>
+      <p className="page__note">
+        This is a recorded collection event and is kept as part of the traceability history — it
+        can't be edited after creation.
+      </p>
 
       <div className="card">
         <dl className="detail-list">

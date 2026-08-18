@@ -67,14 +67,30 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.POST, "/api/users")
                                         .hasRole("ADMIN")
+                                        .requestMatchers(HttpMethod.GET, "/api/users")
+                                        .hasRole("ADMIN")
+                                        .requestMatchers(HttpMethod.PUT, "/api/users/*")
+                                        .hasRole("ADMIN")
                                         .requestMatchers(
-                                                HttpMethod.POST, "/api/farms", "/api/livestock", "/api/milk-batches")
+                                                HttpMethod.POST,
+                                                "/api/farms",
+                                                "/api/livestock",
+                                                "/api/milk-batches",
+                                                "/api/vet-visits")
                                         .hasAnyRole("FARMER", "ADMIN")
                                         .requestMatchers(HttpMethod.POST, "/api/milk-batches/*/qr")
                                         .hasAnyRole("FARMER", "ADMIN")
+                                        .requestMatchers(HttpMethod.PATCH, "/api/farms/*", "/api/livestock/*")
+                                        .hasAnyRole("FARMER", "ADMIN")
+                                        .requestMatchers(HttpMethod.PUT, "/api/vet-visits/*")
+                                        .hasAnyRole("FARMER", "ADMIN")
+                                        .requestMatchers(HttpMethod.GET, "/api/vet-visits/pending")
+                                        .hasAnyRole("VET", "ADMIN")
                                         .requestMatchers(
                                                 HttpMethod.POST,
-                                                "/api/vet-visits",
+                                                "/api/vet-visits/*/accept",
+                                                "/api/vet-visits/*/reject",
+                                                "/api/vet-visits/*/complete",
                                                 "/api/vaccinations",
                                                 "/api/medications")
                                         .hasAnyRole("VET", "ADMIN")

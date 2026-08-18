@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { getLivestockByFarm } from '../api/livestockApi'
 import { resolveErrorMessage } from '../api/errors'
+import { useAuth } from '../auth/useAuth'
 import EmptyState from '../components/EmptyState'
 import ErrorState from '../components/ErrorState'
 import LoadingState from '../components/LoadingState'
@@ -12,6 +13,7 @@ const STATUS_TONES = { ACTIVE: 'success', SOLD: 'neutral', DECEASED: 'danger' }
 
 export default function LivestockListPage() {
   const location = useLocation()
+  const { role } = useAuth()
   const { farms, loading: farmsLoading, error: farmsError, primaryFarm } = useMyFarms()
 
   const [livestock, setLivestock] = useState([])
@@ -139,9 +141,16 @@ export default function LivestockListPage() {
                     </StatusBadge>
                   </td>
                   <td data-label="" className="data-table__actions">
-                    <Link to={`/livestock/${animal.id}`} className="btn btn--ghost">
-                      View Details
-                    </Link>
+                    <div className="action-group">
+                      <Link to={`/livestock/${animal.id}`} className="btn btn--ghost">
+                        View Details
+                      </Link>
+                      {role === 'FARMER' && (
+                        <Link to={`/livestock/${animal.id}/vet-visit`} className="btn btn--primary">
+                          Request Vet Visit
+                        </Link>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

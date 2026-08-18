@@ -4,6 +4,12 @@ import { resolveErrorMessage } from '../api/errors'
 import { useAuth } from '../auth/useAuth'
 import Logo from '../components/Logo'
 
+function dashboardPathForRole(role) {
+  if (role === 'VET') return '/vet/dashboard'
+  if (role === 'ADMIN') return '/admin/dashboard'
+  return '/dashboard'
+}
+
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -13,8 +19,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  const redirectTo = location.state?.from?.pathname ?? '/dashboard'
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -27,7 +31,10 @@ export default function LoginPage() {
     setError('')
     setSubmitting(true)
     try {
-      await login(email.trim(), password)
+      const auth = await login(email.trim(), password)
+      // Deep-link redirects (from ProtectedRoute) take priority; otherwise route straight to the
+      // role's own dashboard so no intermediate/wrong dashboard is ever rendered.
+      const redirectTo = location.state?.from?.pathname ?? dashboardPathForRole(auth.role)
       navigate(redirectTo, { replace: true })
     } catch (err) {
       setError(resolveErrorMessage(err))

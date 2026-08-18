@@ -76,7 +76,7 @@ class SecurityIntegrationTest {
     void farmer_cannotCreateVaccination() throws Exception {
         Session farmer = registerAndLogin(Role.FARMER);
         VaccinationCreateRequest request =
-                new VaccinationCreateRequest(1L, null, 1L, "Test Vaccine", LocalDate.now(), LocalDate.now());
+                new VaccinationCreateRequest(1L, null, "Test Vaccine", LocalDate.now(), LocalDate.now());
 
         mockMvc
                 .perform(

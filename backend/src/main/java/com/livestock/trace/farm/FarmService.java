@@ -3,10 +3,14 @@ package com.livestock.trace.farm;
 import com.livestock.trace.common.exception.ResourceNotFoundException;
 import com.livestock.trace.farm.dto.FarmCreateRequest;
 import com.livestock.trace.farm.dto.FarmResponse;
+import com.livestock.trace.farm.dto.FarmUpdateRequest;
+import com.livestock.trace.security.AuthenticatedUser;
+import com.livestock.trace.user.Role;
 import com.livestock.trace.user.User;
 import com.livestock.trace.user.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +37,16 @@ public class FarmService {
         return farmRepository.findByOwnerId(ownerId).stream().map(FarmResponse::from).toList();
     }
 
+    // Shared ownership gate for write operations on farm-scoped resources (livestock, milk
+    // batches, QR generation). ADMIN bypasses; every other role must own the farm.
+    public void requireOwnership(Farm farm, AuthenticatedUser currentUser) {
+        boolean isOwner = farm.getOwner().getId().equals(currentUser.id());
+        boolean isAdmin = currentUser.role() == Role.ADMIN;
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("You do not have permission to perform this action.");
+        }
+    }
+
     @Transactional
     public FarmResponse createFarm(FarmCreateRequest request) {
         User owner = userService.getById(request.ownerId());
@@ -42,6 +56,15 @@ public class FarmService {
                         .location(request.location())
                         .owner(owner)
                         .build();
+        return FarmResponse.from(farmRepository.save(farm));
+    }
+
+    @Transactional
+    public FarmResponse updateFarm(Long id, FarmUpdateRequest request, AuthenticatedUser currentUser) {
+        Farm farm = getById(id);
+        requireOwnership(farm, currentUser);
+        farm.setName(request.name());
+        farm.setLocation(request.location());
         return FarmResponse.from(farmRepository.save(farm));
     }
 }

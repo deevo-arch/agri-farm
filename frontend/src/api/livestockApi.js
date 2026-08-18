@@ -17,3 +17,9 @@ export function createLivestock({ tagNumber, species, dateOfBirth, farmId }) {
     .post('/api/livestock', { tagNumber, species, dateOfBirth, farmId })
     .then((res) => res.data)
 }
+
+export function updateLivestock(id, { species, dateOfBirth, status }) {
+  return apiClient
+    .patch(`/api/livestock/${id}`, { species, dateOfBirth, status })
+    .then((res) => res.data)
+}

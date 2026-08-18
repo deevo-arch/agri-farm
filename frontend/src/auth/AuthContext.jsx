@@ -25,6 +25,15 @@ export function AuthProvider({ children }) {
     setAuth(null)
   }, [])
 
+  const updateName = useCallback((name) => {
+    setAuth((prev) => {
+      if (!prev) return prev
+      const next = { ...prev, name }
+      setStoredAuth(next)
+      return next
+    })
+  }, [])
+
   const value = useMemo(
     () => ({
       token: auth?.token ?? null,
@@ -34,8 +43,9 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(auth?.token),
       login,
       logout,
+      updateName,
     }),
-    [auth, login, logout],
+    [auth, login, logout, updateName],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

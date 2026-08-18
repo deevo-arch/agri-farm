@@ -1,12 +1,14 @@
 package com.livestock.trace.farm;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.livestock.trace.farm.dto.FarmCreateRequest;
+import com.livestock.trace.farm.dto.FarmUpdateRequest;
 import com.livestock.trace.security.JwtService;
 import com.livestock.trace.user.Role;
 import com.livestock.trace.user.UserService;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -111,5 +114,86 @@ class FarmControllerTest {
                                 .header(HttpHeaders.AUTHORIZATION, authHeaderFor(farmerWithNoFarm)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    private Long createFarm(String authHeader, String name, Long ownerId) throws Exception {
+        MvcResult result =
+                mockMvc
+                        .perform(
+                                post("/api/farms")
+                                        .header(HttpHeaders.AUTHORIZATION, authHeader)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(
+                                                objectMapper.writeValueAsString(
+                                                        new FarmCreateRequest(name, "Original Location", ownerId))))
+                        .andExpect(status().isCreated())
+                        .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+    }
+
+    @Test
+    void owner_canUpdateOwnFarm() throws Exception {
+        UserResponse farmerA =
+                userService.createUser(
+                        new UserCreateRequest("Farmer A", uniqueEmail("farmer-a"), "pass1234", Role.FARMER));
+        String authHeader = authHeaderFor(farmerA);
+        Long farmId = createFarm(authHeader, "Farm A", farmerA.id());
+
+        mockMvc
+                .perform(
+                        patch("/api/farms/" + farmId)
+                                .header(HttpHeaders.AUTHORIZATION, authHeader)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(
+                                                new FarmUpdateRequest("Farm A Renamed", "New Location"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Farm A Renamed"))
+                .andExpect(jsonPath("$.location").value("New Location"));
+    }
+
+    @Test
+    void nonOwner_cannotUpdateAnotherFarmersFarm() throws Exception {
+        UserResponse farmerA =
+                userService.createUser(
+                        new UserCreateRequest("Farmer A", uniqueEmail("farmer-a"), "pass1234", Role.FARMER));
+        Long farmId = createFarm(authHeaderFor(farmerA), "Farm A", farmerA.id());
+
+        UserResponse farmerB =
+                userService.createUser(
+                        new UserCreateRequest("Farmer B", uniqueEmail("farmer-b"), "pass1234", Role.FARMER));
+
+        mockMvc
+                .perform(
+                        patch("/api/farms/" + farmId)
+                                .header(HttpHeaders.AUTHORIZATION, authHeaderFor(farmerB))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(
+                                                new FarmUpdateRequest("Hijacked", "Nowhere"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void admin_canUpdateAnotherFarmersFarm() throws Exception {
+        UserResponse farmerA =
+                userService.createUser(
+                        new UserCreateRequest("Farmer A", uniqueEmail("farmer-a"), "pass1234", Role.FARMER));
+        Long farmId = createFarm(authHeaderFor(farmerA), "Farm A", farmerA.id());
+
+        UserResponse admin =
+                userService.createUser(
+                        new UserCreateRequest("Admin User", uniqueEmail("admin"), "pass1234", Role.ADMIN));
+
+        mockMvc
+                .perform(
+                        patch("/api/farms/" + farmId)
+                                .header(HttpHeaders.AUTHORIZATION, authHeaderFor(admin))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(
+                                                new FarmUpdateRequest("Admin Updated", "Elsewhere"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Admin Updated"));
     }
 }

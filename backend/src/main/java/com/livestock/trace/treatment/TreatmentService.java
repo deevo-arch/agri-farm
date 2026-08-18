@@ -2,6 +2,7 @@ package com.livestock.trace.treatment;
 
 import com.livestock.trace.livestock.Livestock;
 import com.livestock.trace.livestock.LivestockService;
+import com.livestock.trace.security.AuthenticatedUser;
 import com.livestock.trace.treatment.dto.MedicationCreateRequest;
 import com.livestock.trace.treatment.dto.MedicationResponse;
 import com.livestock.trace.treatment.dto.VaccinationCreateRequest;
@@ -41,9 +42,9 @@ public class TreatmentService {
     }
 
     @Transactional
-    public VaccinationResponse createVaccination(VaccinationCreateRequest request) {
+    public VaccinationResponse createVaccination(VaccinationCreateRequest request, AuthenticatedUser currentUser) {
         Livestock livestock = livestockService.getById(request.livestockId());
-        User administeredBy = userService.getById(request.administeredById());
+        User administeredBy = userService.getById(currentUser.id());
         VetVisit vetVisit =
                 request.vetVisitId() != null ? vetVisitService.getById(request.vetVisitId()) : null;
 
@@ -60,9 +61,9 @@ public class TreatmentService {
     }
 
     @Transactional
-    public MedicationResponse createMedication(MedicationCreateRequest request) {
+    public MedicationResponse createMedication(MedicationCreateRequest request, AuthenticatedUser currentUser) {
         Livestock livestock = livestockService.getById(request.livestockId());
-        User administeredBy = userService.getById(request.administeredById());
+        User administeredBy = userService.getById(currentUser.id());
         VetVisit vetVisit =
                 request.vetVisitId() != null ? vetVisitService.getById(request.vetVisitId()) : null;
 

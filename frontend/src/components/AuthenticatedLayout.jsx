@@ -1,20 +1,39 @@
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import Logo from './Logo'
 
-const NAV_ITEMS = [
+const FARMER_NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/farm', label: 'Farm' },
   { to: '/livestock', label: 'Livestock' },
+  { to: '/vet-visits', label: 'Vet Visits' },
   { to: '/treatments', label: 'Treatments' },
   { to: '/milk-batches', label: 'Milk Batches' },
   { to: '/qr-codes', label: 'QR Codes' },
+  { to: '/profile', label: 'Profile' },
 ]
+
+const VET_NAV_ITEMS = [
+  { to: '/vet/dashboard', label: 'Dashboard' },
+  { to: '/treatments', label: 'Treatments' },
+  { to: '/profile', label: 'Profile' },
+]
+
+const ADMIN_NAV_ITEMS = [
+  { to: '/admin/dashboard', label: 'Dashboard' },
+  { to: '/admin/users', label: 'Users' },
+  { to: '/profile', label: 'Profile' },
+]
+
+const DEFAULT_NAV_ITEMS = [{ to: '/dashboard', label: 'Dashboard' }]
+
+const NAV_BY_ROLE = { FARMER: FARMER_NAV_ITEMS, VET: VET_NAV_ITEMS, ADMIN: ADMIN_NAV_ITEMS }
 
 export default function AuthenticatedLayout() {
   const { name, role, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const navItems = NAV_BY_ROLE[role] ?? DEFAULT_NAV_ITEMS
 
   return (
     <div className="app-shell">
@@ -25,7 +44,7 @@ export default function AuthenticatedLayout() {
           <Logo />
         </div>
         <nav className="sidebar__nav">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -57,10 +76,10 @@ export default function AuthenticatedLayout() {
           <div className="topbar__brand-mobile">AgriTrust</div>
 
           <div className="topbar__user">
-            <div className="topbar__user-info">
+            <Link to="/profile" className="topbar__user-info">
               <span className="topbar__user-name">{name}</span>
               <span className="topbar__user-role">{role?.toLowerCase()}</span>
-            </div>
+            </Link>
             <button type="button" className="btn btn--ghost" onClick={logout}>
               Logout
             </button>

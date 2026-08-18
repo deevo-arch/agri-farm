@@ -6,6 +6,8 @@ import com.livestock.trace.farm.Farm;
 import com.livestock.trace.farm.FarmService;
 import com.livestock.trace.livestock.dto.LivestockCreateRequest;
 import com.livestock.trace.livestock.dto.LivestockResponse;
+import com.livestock.trace.livestock.dto.LivestockUpdateRequest;
+import com.livestock.trace.security.AuthenticatedUser;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,8 +37,9 @@ public class LivestockService {
     }
 
     @Transactional
-    public LivestockResponse createLivestock(LivestockCreateRequest request) {
+    public LivestockResponse createLivestock(LivestockCreateRequest request, AuthenticatedUser currentUser) {
         Farm farm = farmService.getById(request.farmId());
+        farmService.requireOwnership(farm, currentUser);
 
         livestockRepository
                 .findByFarmIdAndTagNumber(farm.getId(), request.tagNumber())
@@ -53,6 +56,18 @@ public class LivestockService {
                         .dateOfBirth(request.dateOfBirth())
                         .farm(farm)
                         .build();
+        return LivestockResponse.from(livestockRepository.save(livestock));
+    }
+
+    @Transactional
+    public LivestockResponse updateLivestock(
+            Long id, LivestockUpdateRequest request, AuthenticatedUser currentUser) {
+        Livestock livestock = getById(id);
+        farmService.requireOwnership(livestock.getFarm(), currentUser);
+
+        livestock.setSpecies(request.species());
+        livestock.setDateOfBirth(request.dateOfBirth());
+        livestock.setStatus(request.status());
         return LivestockResponse.from(livestockRepository.save(livestock));
     }
 }

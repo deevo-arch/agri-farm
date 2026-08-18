@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getLivestockByFarm, getLivestockHealth } from '../api/livestockApi'
+import { getMedicationsByLivestock, getVaccinationsByLivestock } from '../api/treatmentApi'
+import { getVetVisitsByVet } from '../api/vetVisitApi'
 import { resolveErrorMessage } from '../api/errors'
+import { useAuth } from '../auth/useAuth'
 import EmptyState from '../components/EmptyState'
 import ErrorState from '../components/ErrorState'
 import LoadingState from '../components/LoadingState'
@@ -16,6 +19,12 @@ function formatDate(isoDate) {
 }
 
 export default function TreatmentsPage() {
+  const { role, userId } = useAuth()
+  if (role === 'VET') return <VetTreatmentsView vetId={userId} />
+  return <FarmerTreatmentsView />
+}
+
+function FarmerTreatmentsView() {
   const { farms, loading: farmsLoading, error: farmsError, primaryFarm } = useMyFarms()
   const [vaccinations, setVaccinations] = useState([])
   const [medications, setMedications] = useState([])
@@ -55,38 +64,96 @@ export default function TreatmentsPage() {
   return (
     <div className="page">
       <h1>Treatments</h1>
+      <p className="page__note">Treatment records are kept as part of the traceability history.</p>
       {farms.length > 1 && <p className="page__note">Showing treatments for {primaryFarm.name}.</p>}
 
+      <TreatmentTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        loading={loading}
+        error={error}
+        onRetry={() => load(primaryFarm.id)}
+        vaccinations={vaccinations}
+        medications={medications}
+      />
+    </div>
+  )
+}
+
+function VetTreatmentsView({ vetId }) {
+  const [vaccinations, setVaccinations] = useState([])
+  const [medications, setMedications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('vaccinations')
+
+  const load = useCallback(() => {
+    setLoading(true)
+    setError('')
+    return getVetVisitsByVet(vetId)
+      .then((visits) => {
+        const livestockIds = [...new Set(visits.map((v) => v.livestockId))]
+        return Promise.all(
+          livestockIds.map((id) => Promise.all([getVaccinationsByLivestock(id), getMedicationsByLivestock(id)])),
+        )
+      })
+      .then((pairs) => {
+        const isMine = (record) => Number(record.administeredById) === Number(vetId)
+        setVaccinations(pairs.flatMap(([v]) => v).filter(isMine))
+        setMedications(pairs.flatMap(([, m]) => m).filter(isMine))
+      })
+      .catch((err) => setError(resolveErrorMessage(err)))
+      .finally(() => setLoading(false))
+  }, [vetId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return (
+    <div className="page">
+      <h1>Treatments</h1>
+      <p className="page__note">Treatment records are kept as part of the traceability history.</p>
+
+      <TreatmentTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        loading={loading}
+        error={error}
+        onRetry={load}
+        vaccinations={vaccinations}
+        medications={medications}
+      />
+    </div>
+  )
+}
+
+function TreatmentTabs({ activeTab, onChange, loading, error, onRetry, vaccinations, medications }) {
+  return (
+    <>
       <div className="tabs">
         <button
           type="button"
           className={`tab ${activeTab === 'vaccinations' ? 'tab--active' : ''}`}
-          onClick={() => setActiveTab('vaccinations')}
+          onClick={() => onChange('vaccinations')}
         >
           Vaccinations
         </button>
         <button
           type="button"
           className={`tab ${activeTab === 'medications' ? 'tab--active' : ''}`}
-          onClick={() => setActiveTab('medications')}
+          onClick={() => onChange('medications')}
         >
           Medications
         </button>
       </div>
 
       {loading && <LoadingState label="Loading treatment history…" />}
-      {!loading && error && (
-        <ErrorState message={error} onRetry={() => load(primaryFarm.id)} />
-      )}
+      {!loading && error && <ErrorState message={error} onRetry={onRetry} />}
 
-      {!loading && !error && activeTab === 'vaccinations' && (
-        <VaccinationsTable vaccinations={vaccinations} />
-      )}
-
-      {!loading && !error && activeTab === 'medications' && (
-        <MedicationsTable medications={medications} />
-      )}
-    </div>
+      {!loading && !error && activeTab === 'vaccinations' && <VaccinationsTable vaccinations={vaccinations} />}
+      {!loading && !error && activeTab === 'medications' && <MedicationsTable medications={medications} />}
+    </>
   )
 }
 

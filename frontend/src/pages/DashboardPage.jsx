@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { getLivestockByFarm } from '../api/livestockApi'
+import { getMyVetVisits } from '../api/vetVisitApi'
 import { resolveErrorMessage } from '../api/errors'
 import EmptyState from '../components/EmptyState'
 import ErrorState from '../components/ErrorState'
@@ -14,18 +15,6 @@ const ROLE_LABELS = {
   VET: 'Veterinarian',
   ADMIN: 'Administrator',
 }
-
-const VET_CARDS = [
-  { title: "Today's Visits", description: 'Farm visits scheduled and logged.' },
-  { title: 'Vaccinations', description: 'Vaccination records you have administered.' },
-  { title: 'Medications', description: 'Medication records you have administered.' },
-]
-
-const ADMIN_CARDS = [
-  { title: 'Users', description: 'Farmer, vet, and admin accounts.' },
-  { title: 'Farms', description: 'All registered farms on the platform.' },
-  { title: 'System Overview', description: 'Platform-wide activity at a glance.' },
-]
 
 function DashboardHeader({ name, role }) {
   return (
@@ -63,6 +52,8 @@ function FarmerDashboard({ name }) {
   const [livestockCount, setLivestockCount] = useState(null)
   const [countLoading, setCountLoading] = useState(false)
   const [countError, setCountError] = useState('')
+  const [vetVisits, setVetVisits] = useState(null)
+  const [vetVisitsError, setVetVisitsError] = useState('')
 
   useEffect(() => {
     if (!primaryFarm) return
@@ -73,6 +64,14 @@ function FarmerDashboard({ name }) {
       .catch((err) => setCountError(resolveErrorMessage(err)))
       .finally(() => setCountLoading(false))
   }, [primaryFarm])
+
+  useEffect(() => {
+    getMyVetVisits()
+      .then(setVetVisits)
+      .catch((err) => setVetVisitsError(resolveErrorMessage(err)))
+  }, [])
+
+  const activeVisitCount = vetVisits?.filter((v) => v.status === 'REQUESTED' || v.status === 'ACCEPTED').length ?? 0
 
   return (
     <div className="dashboard">
@@ -134,6 +133,22 @@ function FarmerDashboard({ name }) {
               View Milk Batches
             </Link>
           </article>
+
+          <article className="card">
+            <div className="card__header">
+              <h2>Vet Visits</h2>
+            </div>
+            {vetVisitsError && <p className="card__note">{vetVisitsError}</p>}
+            {!vetVisitsError && vetVisits === null && <p>Loading…</p>}
+            {!vetVisitsError && vetVisits !== null && (
+              <p className="dashboard__stat">
+                {activeVisitCount === 0 ? 'No active requests' : activeVisitCount}
+              </p>
+            )}
+            <Link to="/vet-visits" className="btn btn--ghost">
+              View Vet Visits
+            </Link>
+          </article>
         </section>
       )}
     </div>
@@ -144,7 +159,7 @@ export default function DashboardPage() {
   const { name, role } = useAuth()
 
   if (role === 'FARMER') return <FarmerDashboard name={name} />
-  if (role === 'VET') return <PlaceholderDashboard name={name} role={role} cards={VET_CARDS} />
-  if (role === 'ADMIN') return <PlaceholderDashboard name={name} role={role} cards={ADMIN_CARDS} />
+  if (role === 'VET') return <Navigate to="/vet/dashboard" replace />
+  if (role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />
   return <PlaceholderDashboard name={name} role={role} cards={[]} />
 }

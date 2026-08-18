@@ -3,6 +3,8 @@ package com.livestock.trace.livestock;
 import com.livestock.trace.livestock.dto.LivestockCreateRequest;
 import com.livestock.trace.livestock.dto.LivestockHealthResponse;
 import com.livestock.trace.livestock.dto.LivestockResponse;
+import com.livestock.trace.livestock.dto.LivestockUpdateRequest;
+import com.livestock.trace.security.AuthenticatedUser;
 import com.livestock.trace.treatment.TreatmentService;
 import com.livestock.trace.vet.VetVisitService;
 import jakarta.validation.Valid;
@@ -10,7 +12,9 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,8 +32,10 @@ public class LivestockController {
 
     @PostMapping
     public ResponseEntity<LivestockResponse> createLivestock(
-            @Valid @RequestBody LivestockCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(livestockService.createLivestock(request));
+            @Valid @RequestBody LivestockCreateRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(livestockService.createLivestock(request, currentUser));
     }
 
     @GetMapping("/{id}")
@@ -48,5 +54,13 @@ public class LivestockController {
                         treatmentService.getMedicationResponsesByLivestock(id),
                         treatmentService.hasActiveWithdrawal(id, LocalDate.now()));
         return ResponseEntity.ok(health);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<LivestockResponse> updateLivestock(
+            @PathVariable Long id,
+            @Valid @RequestBody LivestockUpdateRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+        return ResponseEntity.ok(livestockService.updateLivestock(id, request, currentUser));
     }
 }

@@ -2,11 +2,13 @@ package com.livestock.trace.milk;
 
 import com.livestock.trace.milk.dto.MilkBatchCreateRequest;
 import com.livestock.trace.milk.dto.MilkBatchResponse;
+import com.livestock.trace.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,8 +25,10 @@ public class MilkBatchController {
 
     @PostMapping
     public ResponseEntity<MilkBatchResponse> createMilkBatch(
-            @Valid @RequestBody MilkBatchCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(milkBatchService.createMilkBatch(request));
+            @Valid @RequestBody MilkBatchCreateRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(milkBatchService.createMilkBatch(request, currentUser));
     }
 
     @GetMapping("/{id}")

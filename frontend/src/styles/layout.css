@@ -90,6 +90,14 @@
   flex-direction: column;
   align-items: flex-end;
   line-height: 1.3;
+  color: inherit;
+  text-decoration: none;
+}
+.topbar__user-info:hover {
+  text-decoration: none;
+}
+.topbar__user-info:hover .topbar__user-name {
+  color: var(--color-primary);
 }
 .topbar__user-name {
   font-weight: 600;

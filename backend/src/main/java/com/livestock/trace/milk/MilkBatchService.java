@@ -8,6 +8,7 @@ import com.livestock.trace.livestock.Livestock;
 import com.livestock.trace.livestock.LivestockService;
 import com.livestock.trace.milk.dto.MilkBatchCreateRequest;
 import com.livestock.trace.milk.dto.MilkBatchResponse;
+import com.livestock.trace.security.AuthenticatedUser;
 import com.livestock.trace.treatment.TreatmentService;
 import com.livestock.trace.user.User;
 import com.livestock.trace.user.UserService;
@@ -44,9 +45,21 @@ public class MilkBatchService {
         return milkBatchRepository.findByFarmId(farmId).stream().map(MilkBatchResponse::from).toList();
     }
 
+    // Resolves the batch's lazy farm/owner association and checks ownership, all within this
+    // method's own transaction. Called from other services (e.g. QrCodeService) precisely so that
+    // it runs as its own self-contained transaction via the Spring proxy, rather than being folded
+    // into a caller's longer-lived transaction — see QrCodeService.generateForMilkBatch for why
+    // that distinction matters for the create/recover race path.
+    @Transactional(readOnly = true)
+    public void requireOwnershipOfMilkBatch(Long milkBatchId, AuthenticatedUser currentUser) {
+        MilkBatch milkBatch = getById(milkBatchId);
+        farmService.requireOwnership(milkBatch.getFarm(), currentUser);
+    }
+
     @Transactional
-    public MilkBatchResponse createMilkBatch(MilkBatchCreateRequest request) {
+    public MilkBatchResponse createMilkBatch(MilkBatchCreateRequest request, AuthenticatedUser currentUser) {
         Farm farm = farmService.getById(request.farmId());
+        farmService.requireOwnership(farm, currentUser);
         User collectedBy =
                 request.collectedById() != null ? userService.getById(request.collectedById()) : null;
 

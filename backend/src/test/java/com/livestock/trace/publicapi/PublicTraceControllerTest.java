@@ -16,6 +16,7 @@ import com.livestock.trace.milk.dto.MilkBatchCreateRequest;
 import com.livestock.trace.milk.dto.MilkBatchResponse;
 import com.livestock.trace.qr.QrCodeService;
 import com.livestock.trace.qr.dto.QrCodeResponse;
+import com.livestock.trace.security.AuthenticatedUser;
 import com.livestock.trace.treatment.TreatmentService;
 import com.livestock.trace.treatment.dto.MedicationCreateRequest;
 import com.livestock.trace.treatment.dto.VaccinationCreateRequest;
@@ -58,27 +59,31 @@ class PublicTraceControllerTest {
         UserResponse farmer =
                 userService.createUser(
                         new UserCreateRequest("Trace Farmer", uniqueEmail("farmer"), "pass1234", Role.FARMER));
+        AuthenticatedUser farmerPrincipal = new AuthenticatedUser(farmer.id(), farmer.email(), Role.FARMER);
         UserResponse vet =
                 userService.createUser(
                         new UserCreateRequest("Trace Vet", uniqueEmail("vet"), "pass1234", Role.VET));
+        AuthenticatedUser vetPrincipal = new AuthenticatedUser(vet.id(), vet.email(), Role.VET);
         FarmResponse farm =
                 farmService.createFarm(new FarmCreateRequest("Trace Farm", "Trace Location", farmer.id()));
         LivestockResponse cow =
                 livestockService.createLivestock(
-                        new LivestockCreateRequest("TR-1", Species.COW, LocalDate.of(2022, 1, 1), farm.id()));
+                        new LivestockCreateRequest("TR-1", Species.COW, LocalDate.of(2022, 1, 1), farm.id()),
+                        farmerPrincipal);
 
         treatmentService.createVaccination(
                 new VaccinationCreateRequest(
-                        cow.id(), null, vet.id(), "FMD", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 5)));
+                        cow.id(), null, "FMD", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 5)),
+                vetPrincipal);
         treatmentService.createMedication(
                 new MedicationCreateRequest(
                         cow.id(),
                         null,
-                        vet.id(),
                         "Antibiotic",
                         "5ml",
                         LocalDate.of(2026, 1, 1),
-                        LocalDate.of(2026, 1, 3)));
+                        LocalDate.of(2026, 1, 3)),
+                vetPrincipal);
 
         MilkBatchResponse batch =
                 milkBatchService.createMilkBatch(
@@ -88,9 +93,10 @@ class PublicTraceControllerTest {
                                 farmer.id(),
                                 LocalDate.of(2026, 1, 10),
                                 new BigDecimal("12.00"),
-                                Set.of(cow.id())));
+                                Set.of(cow.id())),
+                        farmerPrincipal);
 
-        QrCodeResponse qr = qrCodeService.generateForMilkBatch(batch.id());
+        QrCodeResponse qr = qrCodeService.generateForMilkBatch(batch.id(), farmerPrincipal);
         return qr.token();
     }
 

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { getLivestockHealth } from '../api/livestockApi'
 import { getErrorStatus, resolveErrorMessage } from '../api/errors'
+import { useAuth } from '../auth/useAuth'
 import EmptyState from '../components/EmptyState'
 import ErrorState from '../components/ErrorState'
 import LoadingState from '../components/LoadingState'
 import StatusBadge from '../components/StatusBadge'
 
 const STATUS_TONES = { ACTIVE: 'success', SOLD: 'neutral', DECEASED: 'danger' }
+const VET_VISIT_STATUS_TONES = { REQUESTED: 'warning', ACCEPTED: 'primary', COMPLETED: 'success', REJECTED: 'danger' }
 
 function formatDate(isoDate) {
   if (!isoDate) return '—'
@@ -26,10 +28,13 @@ function latestWithdrawalEndDate(vaccinations, medications) {
 
 export default function LivestockDetailPage() {
   const { id } = useParams()
+  const { role } = useAuth()
+  const location = useLocation()
   const [health, setHealth] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notFound, setNotFound] = useState(false)
+  const [flashMessage] = useState(location.state?.successMessage ?? '')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -75,11 +80,29 @@ export default function LivestockDetailPage() {
         ← Back to Livestock
       </Link>
 
+      {flashMessage && (
+        <div className="alert alert--success" role="status">
+          {flashMessage}
+        </div>
+      )}
+
       <div className="page__header">
         <h1>{livestock.tagNumber}</h1>
-        <StatusBadge tone={STATUS_TONES[livestock.status] ?? 'neutral'}>
-          {livestock.status}
-        </StatusBadge>
+        <div className="page__header-actions">
+          <StatusBadge tone={STATUS_TONES[livestock.status] ?? 'neutral'}>
+            {livestock.status}
+          </StatusBadge>
+          {role === 'FARMER' && (
+            <>
+              <Link to={`/livestock/${id}/edit`} className="btn btn--ghost">
+                Edit
+              </Link>
+              <Link to={`/livestock/${id}/vet-visit`} className="btn btn--primary">
+                Request Vet Visit
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       <section className="detail-grid">
@@ -191,17 +214,21 @@ export default function LivestockDetailPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Date</th>
+                  <th>Preferred Date</th>
+                  <th>Reason</th>
+                  <th>Status</th>
                   <th>Vet</th>
-                  <th>Notes</th>
                 </tr>
               </thead>
               <tbody>
                 {vetVisits.map((v) => (
                   <tr key={v.id}>
-                    <td data-label="Date">{formatDate(v.visitDate)}</td>
-                    <td data-label="Vet">{v.vetName}</td>
-                    <td data-label="Notes">{v.notes || '—'}</td>
+                    <td data-label="Preferred Date">{formatDate(v.preferredDate)}</td>
+                    <td data-label="Reason">{v.reason}</td>
+                    <td data-label="Status">
+                      <StatusBadge tone={VET_VISIT_STATUS_TONES[v.status] ?? 'neutral'}>{v.status}</StatusBadge>
+                    </td>
+                    <td data-label="Vet">{v.vetName || '—'}</td>
                   </tr>
                 ))}
               </tbody>

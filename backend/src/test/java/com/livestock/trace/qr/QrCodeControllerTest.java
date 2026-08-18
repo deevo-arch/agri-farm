@@ -17,6 +17,7 @@ import com.livestock.trace.livestock.dto.LivestockResponse;
 import com.livestock.trace.milk.MilkBatchService;
 import com.livestock.trace.milk.dto.MilkBatchCreateRequest;
 import com.livestock.trace.milk.dto.MilkBatchResponse;
+import com.livestock.trace.security.AuthenticatedUser;
 import com.livestock.trace.security.JwtService;
 import com.livestock.trace.user.Role;
 import com.livestock.trace.user.UserService;
@@ -51,6 +52,7 @@ class QrCodeControllerTest {
 
     private Long farmerId;
     private String farmerAuthHeader;
+    private AuthenticatedUser farmerPrincipal;
     private Long farmId;
     private Long milkBatchId;
 
@@ -61,6 +63,7 @@ class QrCodeControllerTest {
                         new UserCreateRequest("QR Farmer", uniqueEmail("farmer"), "pass1234", Role.FARMER));
         farmerId = farmer.id();
         farmerAuthHeader = "Bearer " + jwtService.generateToken(userService.getById(farmerId));
+        farmerPrincipal = new AuthenticatedUser(farmer.id(), farmer.email(), Role.FARMER);
 
         FarmResponse farm =
                 farmService.createFarm(new FarmCreateRequest("QR Test Farm", "Testville", farmerId));
@@ -68,7 +71,8 @@ class QrCodeControllerTest {
 
         LivestockResponse cow =
                 livestockService.createLivestock(
-                        new LivestockCreateRequest("QRT-1", Species.COW, LocalDate.of(2022, 1, 1), farmId));
+                        new LivestockCreateRequest("QRT-1", Species.COW, LocalDate.of(2022, 1, 1), farmId),
+                        farmerPrincipal);
 
         MilkBatchResponse batch =
                 milkBatchService.createMilkBatch(
@@ -78,7 +82,8 @@ class QrCodeControllerTest {
                                 farmerId,
                                 LocalDate.now(),
                                 new BigDecimal("10.00"),
-                                Set.of(cow.id())));
+                                Set.of(cow.id())),
+                        farmerPrincipal);
         milkBatchId = batch.id();
     }
 
@@ -104,7 +109,7 @@ class QrCodeControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.milkBatchId").value(milkBatchId))
                 .andExpect(jsonPath("$.token").isNotEmpty())
-                .andExpect(jsonPath("$.traceUrl", startsWith("http://localhost:3000/trace/")))
+                .andExpect(jsonPath("$.traceUrl", startsWith("http://localhost:5173/trace/")))
                 .andExpect(jsonPath("$.qrImage", startsWith("data:image/png;base64,")));
     }
 
@@ -129,6 +134,18 @@ class QrCodeControllerTest {
         mockMvc
                 .perform(post("/api/milk-batches/" + milkBatchId + "/qr").header(HttpHeaders.AUTHORIZATION, vetAuthHeader))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void farmer_cannotGenerateQrForAnotherFarmersBatch() throws Exception {
+        String otherFarmerAuthHeader = tokenFor(Role.FARMER);
+
+        mockMvc
+                .perform(
+                        post("/api/milk-batches/" + milkBatchId + "/qr")
+                                .header(HttpHeaders.AUTHORIZATION, otherFarmerAuthHeader))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"));
     }
 
     @Test
@@ -163,7 +180,8 @@ class QrCodeControllerTest {
 
         LivestockResponse cow2 =
                 livestockService.createLivestock(
-                        new LivestockCreateRequest("QRT-2", Species.COW, LocalDate.of(2022, 1, 1), farmId));
+                        new LivestockCreateRequest("QRT-2", Species.COW, LocalDate.of(2022, 1, 1), farmId),
+                        farmerPrincipal);
         MilkBatchResponse batch2 =
                 milkBatchService.createMilkBatch(
                         new MilkBatchCreateRequest(
@@ -172,7 +190,8 @@ class QrCodeControllerTest {
                                 farmerId,
                                 LocalDate.now(),
                                 new BigDecimal("5.00"),
-                                Set.of(cow2.id())));
+                                Set.of(cow2.id())),
+                        farmerPrincipal);
 
         MvcResult secondResult =
                 mockMvc

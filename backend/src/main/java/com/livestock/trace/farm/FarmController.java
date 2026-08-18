@@ -2,6 +2,7 @@ package com.livestock.trace.farm;
 
 import com.livestock.trace.farm.dto.FarmCreateRequest;
 import com.livestock.trace.farm.dto.FarmResponse;
+import com.livestock.trace.farm.dto.FarmUpdateRequest;
 import com.livestock.trace.livestock.LivestockService;
 import com.livestock.trace.livestock.dto.LivestockResponse;
 import com.livestock.trace.security.AuthenticatedUser;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,5 +52,13 @@ public class FarmController {
     public ResponseEntity<List<LivestockResponse>> getFarmLivestock(@PathVariable Long id) {
         farmService.getById(id);
         return ResponseEntity.ok(livestockService.getResponsesByFarm(id));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<FarmResponse> updateFarm(
+            @PathVariable Long id,
+            @Valid @RequestBody FarmUpdateRequest request,
+            @AuthenticationPrincipal AuthenticatedUser currentUser) {
+        return ResponseEntity.ok(farmService.updateFarm(id, request, currentUser));
     }
 }

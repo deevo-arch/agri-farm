@@ -46,7 +46,12 @@ export default function FarmPage() {
         </div>
       )}
 
-      <h1>{primaryFarm.name}</h1>
+      <div className="page__header">
+        <h1>{primaryFarm.name}</h1>
+        <Link to="/farm/edit" className="btn btn--ghost">
+          Edit Farm
+        </Link>
+      </div>
 
       <div className="card">
         <dl className="detail-list">
