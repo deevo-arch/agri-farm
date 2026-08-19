@@ -2,12 +2,6 @@ package com.livestock.trace.qr;
 
 import com.livestock.trace.common.BaseEntity;
 import com.livestock.trace.milk.MilkBatch;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,22 +9,24 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "qr_codes")
+@Document(collection = "qr_codes")
 public class QrCode extends BaseEntity {
 
     @NotBlank
-    @Column(nullable = false, length = 64, unique = true)
+    @Indexed(unique = true)
     private String token;
 
     @NotNull
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "milk_batch_id", nullable = false, unique = true)
+    @DBRef
+    @Indexed(unique = true)
     private MilkBatch milkBatch;
 }

@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { clearStoredAuth, getStoredAuth } from '../auth/storage'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const defaultHost = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost'
+const baseURL = import.meta.env.VITE_API_BASE_URL || `http://${defaultHost}:8080`
 
 const apiClient = axios.create({ baseURL })
 

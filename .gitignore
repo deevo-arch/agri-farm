@@ -1,26 +1,42 @@
-# Backend (Maven)
+# Backend (Maven / Java)
 backend/target/
 *.class
+*.jar
+*.war
 
-# Frontend (Node/Vite) — see frontend/.gitignore for details
+# Frontend (Node / React / Vite)
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
+frontend/.vite/
 
-# Environment files
+# Mobile (Flutter / Dart)
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub-cache/
+mobile/.pub/
+mobile/build/
+mobile/ios/Flutter/.last_build_id
+mobile/android/app/debug
+mobile/android/app/profile
+mobile/android/app/release
+
+# Environment & Secret files
 .env
-.env.local
+.env.*
+!.env.example
 *.env.local
 
-# IDE / editor
+# IDE / Editor
 .idea/
+*.iml
 .vscode/*
 !.vscode/extensions.json
-*.iml
+*.swp
 
-# OS
+# OS & Build Logs
 .DS_Store
 Thumbs.db
-
-# Logs
 *.log
+

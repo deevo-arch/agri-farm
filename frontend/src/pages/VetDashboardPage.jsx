@@ -17,6 +17,33 @@ function formatDate(isoDate) {
   })
 }
 
+function VetDashboardHeader({ name }) {
+  return (
+    <div className="dashboard-hero">
+      <div className="dashboard-hero__content">
+        <div className="dashboard-hero__badge">
+          <span className="pulse-dot"></span> Certified Vet Practitioner
+        </div>
+        <h1>Welcome back, {name} 🩺</h1>
+        <p className="dashboard-hero__sub">
+          Veterinary Care Portal • Manage farmer treatment requests, vaccinations & medical records
+        </p>
+      </div>
+
+      <div className="dashboard-hero__graphic" aria-hidden="true">
+        <svg width="140" height="110" viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M70 15C45 15 25 35 25 60C25 85 45 100 70 100C95 100 115 85 115 60C115 35 95 15 70 15Z" fill="white" fillOpacity="0.08" />
+          <path d="M60 40H80V60H100V80H80V100H60V80H40V60H60V40Z" fill="#34D399" fillOpacity="0.35" />
+        </svg>
+      </div>
+
+      <div className="dashboard-hero__role">
+        <StatusBadge tone="primary">Veterinarian</StatusBadge>
+      </div>
+    </div>
+  )
+}
+
 export default function VetDashboardPage() {
   const { name, role, userId } = useAuth()
 
@@ -81,12 +108,7 @@ export default function VetDashboardPage() {
 
   return (
     <div className="dashboard">
-      <header className="dashboard__header">
-        <div>
-          <h1>Vet Dashboard</h1>
-          <p className="page__note">Welcome back, {name}.</p>
-        </div>
-      </header>
+      <VetDashboardHeader name={name} />
 
       {actionError && (
         <div className="alert alert--danger" role="alert">
@@ -94,8 +116,48 @@ export default function VetDashboardPage() {
         </div>
       )}
 
-      <section className="card">
-        <h2>Pending Requests</h2>
+      {/* Vet Summary Stat Grid */}
+      <section className="dashboard__grid" style={{ marginBottom: '28px' }}>
+        <article className="dashboard__stat-card dashboard__stat-card--vet">
+          <div className="stat-card__watermark" aria-hidden="true">📩</div>
+          <div className="card__header">
+            <h2>📩 Pending Requests</h2>
+            <StatusBadge tone="warning">{pending.length} Pending</StatusBadge>
+          </div>
+          <p className="dashboard__stat">
+            {pending.length} <span className="stat-unit">Farmer Requests</span>
+          </p>
+        </article>
+
+        <article className="dashboard__stat-card dashboard__stat-card--vet">
+          <div className="stat-card__watermark" aria-hidden="true">🩺</div>
+          <div className="card__header">
+            <h2>🩺 Active Visits</h2>
+            <StatusBadge tone="primary">{acceptedVisits.length} Accepted</StatusBadge>
+          </div>
+          <p className="dashboard__stat">
+            {acceptedVisits.length} <span className="stat-unit">In Progress</span>
+          </p>
+        </article>
+
+        <article className="dashboard__stat-card dashboard__stat-card--vet">
+          <div className="stat-card__watermark" aria-hidden="true">✅</div>
+          <div className="card__header">
+            <h2>✅ Completed Visits</h2>
+            <StatusBadge tone="success">{completedVisits.length} Completed</StatusBadge>
+          </div>
+          <p className="dashboard__stat">
+            {completedVisits.length} <span className="stat-unit">Finished</span>
+          </p>
+        </article>
+      </section>
+
+      {/* Pending Requests Section */}
+      <section className="card" style={{ marginBottom: '24px' }}>
+        <div className="card__header" style={{ marginBottom: '16px' }}>
+          <h2>📋 Pending Farmer Requests</h2>
+          <span className="card__note">Accept to start recording treatment data</span>
+        </div>
         {pending.length === 0 ? (
           <EmptyState message="No pending vet visit requests right now." />
         ) : (
@@ -104,12 +166,12 @@ export default function VetDashboardPage() {
               <li key={visit.id} className="vet-visit-list__item">
                 <div>
                   <p className="vet-visit-list__title">
-                    {visit.farmName} — {visit.livestockTagNumber}
+                    🏡 {visit.farmName} — 🐄 {visit.livestockTagNumber}
                   </p>
                   <p className="vet-visit-list__meta">
-                    Preferred date: {formatDate(visit.preferredDate)} · Reason: {visit.reason}
+                    📅 Preferred date: {formatDate(visit.preferredDate)} · 💡 Reason: {visit.reason}
                   </p>
-                  {visit.notes && <p className="vet-visit-list__meta">Notes: {visit.notes}</p>}
+                  {visit.notes && <p className="vet-visit-list__meta">📝 Notes: {visit.notes}</p>}
                 </div>
                 <div className="vet-visit-list__actions">
                   <button
@@ -118,7 +180,7 @@ export default function VetDashboardPage() {
                     disabled={actionPendingId === visit.id}
                     onClick={() => handleAccept(visit.id)}
                   >
-                    Accept
+                    Accept Visit
                   </button>
                   <button
                     type="button"
@@ -135,8 +197,12 @@ export default function VetDashboardPage() {
         )}
       </section>
 
-      <section className="card">
-        <h2>Accepted Visits</h2>
+      {/* Accepted Visits Section */}
+      <section className="card" style={{ marginBottom: '24px' }}>
+        <div className="card__header" style={{ marginBottom: '16px' }}>
+          <h2>💉 Accepted Visits (In Progress)</h2>
+          <span className="card__note">Click 'Open' to log vaccination and medication records</span>
+        </div>
         {acceptedVisits.length === 0 ? (
           <EmptyState message="No visits currently accepted." />
         ) : (
@@ -145,14 +211,14 @@ export default function VetDashboardPage() {
               <li key={visit.id} className="vet-visit-list__item">
                 <div>
                   <p className="vet-visit-list__title">
-                    {visit.farmName} — {visit.livestockTagNumber}
+                    🏡 {visit.farmName} — 🐄 {visit.livestockTagNumber}
                   </p>
-                  <p className="vet-visit-list__meta">Preferred date: {formatDate(visit.preferredDate)}</p>
+                  <p className="vet-visit-list__meta">📅 Preferred date: {formatDate(visit.preferredDate)}</p>
                 </div>
                 <div className="vet-visit-list__actions">
                   <StatusBadge tone="primary">{visit.status}</StatusBadge>
-                  <Link to={`/vet-visits/${visit.id}`} className="btn btn--ghost">
-                    Open
+                  <Link to={`/vet-visits/${visit.id}`} className="btn btn--primary">
+                    Open & Record Treatment ➔
                   </Link>
                 </div>
               </li>
@@ -161,8 +227,11 @@ export default function VetDashboardPage() {
         )}
       </section>
 
+      {/* Completed Visits Section */}
       <section className="card">
-        <h2>Completed Visits</h2>
+        <div className="card__header" style={{ marginBottom: '16px' }}>
+          <h2>✅ Completed Visit History</h2>
+        </div>
         {completedVisits.length === 0 ? (
           <EmptyState message="No completed visits yet." />
         ) : (
@@ -171,14 +240,14 @@ export default function VetDashboardPage() {
               <li key={visit.id} className="vet-visit-list__item">
                 <div>
                   <p className="vet-visit-list__title">
-                    {visit.farmName} — {visit.livestockTagNumber}
+                    🏡 {visit.farmName} — 🐄 {visit.livestockTagNumber}
                   </p>
-                  <p className="vet-visit-list__meta">Preferred date: {formatDate(visit.preferredDate)}</p>
+                  <p className="vet-visit-list__meta">📅 Preferred date: {formatDate(visit.preferredDate)}</p>
                 </div>
                 <div className="vet-visit-list__actions">
                   <StatusBadge tone="success">{visit.status}</StatusBadge>
                   <Link to={`/vet-visits/${visit.id}`} className="btn btn--ghost">
-                    Open
+                    View Record
                   </Link>
                 </div>
               </li>

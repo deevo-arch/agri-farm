@@ -1,9 +1,8 @@
-/* Public consumer-facing traceability page — deliberately distinct from the
-   farmer dashboard: no sidebar, no data tables, just stacked verification cards. */
+/* Public consumer-facing traceability page */
 
 .public-trace-page {
   min-height: 100vh;
-  background: radial-gradient(circle at top, var(--color-primary-tint), var(--color-bg) 60%);
+  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, rgba(248, 250, 252, 1) 70%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -14,161 +13,188 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 28px 20px 20px;
+  gap: 6px;
+  padding: 36px 20px 24px;
   text-align: center;
 }
 .public-trace-header__tagline {
   margin: 0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-primary);
 }
 
 .public-trace-content {
   width: 100%;
-  max-width: 560px;
-  padding: 0 16px 48px;
+  max-width: 600px;
+  padding: 0 20px 60px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+}
+
+.public-trace-content .card {
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
 }
 
 .public-trace-content .card h2 {
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 /* Verification hero */
 .trace-hero {
   text-align: center;
-  padding: 32px 24px;
+  padding: 36px 24px;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   border: 1px solid var(--color-border);
+  position: relative;
+  overflow: hidden;
 }
 .trace-hero__icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 12px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .trace-hero--verified {
-  background: var(--color-success-tint);
+  background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
+  border-color: #a7f3d0;
 }
 .trace-hero--verified .trace-hero__icon {
-  background: var(--color-success);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: #ffffff;
 }
 .trace-hero--verified h2 {
-  color: var(--color-success);
+  color: #065f46;
 }
 .trace-hero--unverified {
-  background: var(--color-warning-tint);
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+  border-color: #fde68a;
 }
 .trace-hero--unverified .trace-hero__icon {
   background: var(--color-warning);
-  color: #fff;
+  color: #ffffff;
 }
 .trace-hero--unverified h2 {
-  color: var(--color-warning);
+  color: #92400e;
 }
 .trace-hero h2 {
-  font-size: 1.4rem;
-  margin-bottom: 4px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.03em;
 }
 .trace-hero__batch {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 .trace-hero__batch code {
-  background: var(--color-surface);
+  background: #ffffff;
   border: 1px solid var(--color-border);
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-family: monospace;
   color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 .trace-hero__status-line {
-  margin-top: 8px;
+  margin-top: 10px;
   margin-bottom: 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
 /* Milk safety */
 .milk-safety__status {
-  font-weight: 700;
-  font-size: 1.05rem;
-  margin-bottom: 4px;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-bottom: 6px;
 }
 .milk-safety__detail {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  line-height: 1.5;
 }
 .milk-safety__raw {
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-muted);
   margin-bottom: 0;
 }
 .milk-safety--safe {
-  border-color: var(--color-success);
+  border-color: var(--color-primary-border);
+  background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
 }
 .milk-safety--safe .milk-safety__status {
-  color: var(--color-success);
+  color: #15803d;
 }
 .milk-safety--unsafe {
-  border-color: var(--color-danger);
+  border-color: #fca5a5;
+  background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);
 }
 .milk-safety--unsafe .milk-safety__status {
-  color: var(--color-danger);
+  color: #b91c1c;
 }
 
 /* Farm */
 .farm-name {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--color-text);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
 }
 .farm-location {
   margin-bottom: 0;
+  font-weight: 500;
 }
 
 /* Animals */
 .animal-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
 }
 .animal-card {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  padding: 16px;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
   background: var(--color-primary-tint);
+  transition: transform 0.2s ease;
+}
+.animal-card:hover {
+  transform: translateY(-2px);
 }
 .animal-card__tag {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1rem;
   color: var(--color-primary-dark);
 }
 .animal-card__species {
   font-size: 0.85rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   text-transform: capitalize;
 }
 
-/* Vaccination / medication record list */
+/* Record list */
 .record-list {
   list-style: none;
   margin: 0;
@@ -178,18 +204,25 @@
   gap: 12px;
 }
 .record-list__item {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: border-color 0.15s ease;
+}
+.record-list__item:hover {
+  border-color: var(--color-primary-border);
 }
 .record-list__title {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 0.95rem;
   color: var(--color-text);
   margin-bottom: 4px;
 }
 .record-list__meta {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   margin-bottom: 2px;
+  color: var(--color-text-muted);
 }
 .record-list__meta:last-child {
   margin-bottom: 0;
@@ -204,9 +237,9 @@
 .trace-timeline__item {
   position: relative;
   display: flex;
-  gap: 14px;
-  padding-bottom: 20px;
-  padding-left: 4px;
+  gap: 16px;
+  padding-bottom: 24px;
+  padding-left: 6px;
 }
 .trace-timeline__item:last-child {
   padding-bottom: 0;
@@ -214,8 +247,8 @@
 .trace-timeline__item::before {
   content: '';
   position: absolute;
-  left: 9px;
-  top: 20px;
+  left: 11px;
+  top: 22px;
   bottom: 0;
   width: 2px;
   background: var(--color-border);
@@ -225,39 +258,43 @@
 }
 .trace-timeline__dot {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--color-primary-tint);
-  border: 2px solid var(--color-primary);
+  border: 3px solid var(--color-primary);
   margin-top: 2px;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 .trace-timeline__dot--final {
   background: var(--color-success);
   border-color: var(--color-success);
 }
 .trace-timeline__label {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.95rem;
   color: var(--color-text);
   margin-bottom: 2px;
 }
 .trace-timeline__date {
   font-size: 0.85rem;
+  color: var(--color-text-muted);
   margin-bottom: 0;
 }
 
 /* Footer */
 .trace-footer {
   text-align: center;
-  padding-top: 8px;
+  padding-top: 12px;
 }
 .trace-footer p {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
   margin-bottom: 0;
 }
 
 @media (max-width: 480px) {
   .trace-hero {
-    padding: 24px 16px;
+    padding: 28px 18px;
   }
 }

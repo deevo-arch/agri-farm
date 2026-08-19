@@ -1,5 +1,6 @@
 package com.livestock.trace.user;
 
+import com.livestock.trace.common.SequenceGeneratorService;
 import com.livestock.trace.common.exception.BusinessRuleException;
 import com.livestock.trace.common.exception.ResourceNotFoundException;
 import com.livestock.trace.security.AuthenticatedUser;
@@ -11,7 +12,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +19,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SequenceGeneratorService sequenceGeneratorService;
 
     public User getById(Long id) {
         return userRepository
@@ -32,17 +33,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
     }
 
-    @Transactional(readOnly = true)
     public UserResponse getResponseById(Long id) {
         return UserResponse.from(getById(id));
     }
 
-    @Transactional(readOnly = true)
     public List<UserResponse> getAllResponses() {
         return userRepository.findAll().stream().map(UserResponse::from).toList();
     }
 
-    @Transactional
     public UserResponse updateSelf(Long userId, UserUpdateRequest request) {
         User user = getById(userId);
         boolean emailChanged = !user.getEmail().equalsIgnoreCase(request.email());
@@ -54,9 +52,6 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
-    // ADMIN-only: can edit any account's fullName/email/role, including their own — except an
-    // admin can never demote themselves away from ADMIN, to avoid locking the system out.
-    @Transactional
     public UserResponse updateUserAsAdmin(
             Long targetUserId, UserAdminUpdateRequest request, AuthenticatedUser currentUser) {
         User user = getById(targetUserId);
@@ -74,7 +69,6 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
-    @Transactional
     public UserResponse createUser(UserCreateRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new BusinessRuleException("Email already registered: " + request.email());
@@ -86,6 +80,7 @@ public class UserService {
                         .password(passwordEncoder.encode(request.password()))
                         .role(request.role())
                         .build();
+        user.setId(sequenceGeneratorService.generateSequence(User.class.getSimpleName()));
         return UserResponse.from(userRepository.save(user));
     }
 }

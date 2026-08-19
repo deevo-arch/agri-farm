@@ -15,14 +15,20 @@ function todayIsoDate() {
   return new Date().toISOString().slice(0, 10)
 }
 
+function generateRandomBatchCode() {
+  const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '')
+  const randomNum = Math.floor(100 + Math.random() * 900)
+  return `BATCH-${dateStr}-${randomNum}`
+}
+
 function validate({ batchCode, collectionDate, quantityLitres, selectedIds }) {
   if (!batchCode.trim()) return 'Please enter a batch code.'
   if (!collectionDate) return 'Please select a collection date.'
   const qty = Number(quantityLitres)
   if (!quantityLitres || Number.isNaN(qty) || qty <= 0) {
-    return 'Please enter a quantity greater than 0.'
+    return 'Please enter a valid milk quantity greater than 0 litres.'
   }
-  if (selectedIds.length === 0) return 'Select at least one animal.'
+  if (selectedIds.length === 0) return 'Please select at least one cow/animal for this milk batch.'
   return ''
 }
 
@@ -35,7 +41,7 @@ export default function MilkBatchFormPage() {
   const [livestockLoading, setLivestockLoading] = useState(false)
   const [livestockError, setLivestockError] = useState('')
 
-  const [batchCode, setBatchCode] = useState('')
+  const [batchCode, setBatchCode] = useState(generateRandomBatchCode())
   const [collectionDate, setCollectionDate] = useState(todayIsoDate())
   const [quantityLitres, setQuantityLitres] = useState('')
   const [selectedIds, setSelectedIds] = useState([])
@@ -46,13 +52,27 @@ export default function MilkBatchFormPage() {
     if (!primaryFarm) return
     setLivestockLoading(true)
     getLivestockByFarm(primaryFarm.id)
-      .then(setLivestock)
+      .then((data) => {
+        setLivestock(data)
+        // Automatically select the first animal if available for convenience
+        if (data.length > 0) {
+          setSelectedIds([data[0].id])
+        }
+      })
       .catch((err) => setLivestockError(resolveErrorMessage(err)))
       .finally(() => setLivestockLoading(false))
   }, [primaryFarm])
 
   function toggleAnimal(id) {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  function selectAllAnimals() {
+    if (selectedIds.length === livestock.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(livestock.map((a) => a.id))
+    }
   }
 
   async function handleSubmit(event) {
@@ -76,7 +96,7 @@ export default function MilkBatchFormPage() {
       })
       navigate(`/milk-batches/${created.id}`, {
         replace: true,
-        state: { successMessage: `Batch ${created.batchCode} was created successfully.` },
+        state: { successMessage: `Milk Batch ${created.batchCode} was recorded successfully!` },
       })
     } catch (err) {
       setFormError(resolveErrorMessage(err))
@@ -85,18 +105,18 @@ export default function MilkBatchFormPage() {
     }
   }
 
-  if (farmsLoading) return <LoadingState label="Loading your farm…" />
+  if (farmsLoading) return <LoadingState label="Loading farm details…" />
   if (farmsError) return <ErrorState message={farmsError} />
 
   if (farms.length === 0) {
     return (
       <div className="page page--narrow">
-        <h1>Create Milk Batch</h1>
+        <h1>🥛 Create Milk Batch</h1>
         <div className="alert alert--danger" role="alert">
-          You need a registered farm before you can record a milk batch.
+          You need a registered farm before recording milk batches.
         </div>
-        <Link to="/farms/new" className="btn btn--ghost">
-          Create Farm
+        <Link to="/farms/new" className="btn btn--primary">
+          + Create Farm
         </Link>
       </div>
     )
@@ -104,7 +124,12 @@ export default function MilkBatchFormPage() {
 
   return (
     <div className="page page--narrow">
-      <h1>Create Milk Batch</h1>
+      <div className="page__header">
+        <div>
+          <h1>🥛 Log New Milk Collection Batch</h1>
+          <p className="page__note">Record milk volume and select cows included in this collection batch.</p>
+        </div>
+      </div>
 
       {formError && (
         <div className="alert alert--danger" role="alert">
@@ -115,21 +140,32 @@ export default function MilkBatchFormPage() {
       <form onSubmit={handleSubmit} noValidate className="card">
         <div className="field">
           <label htmlFor="batchCode">
-            Batch code <span className="required">*</span>
+            Batch Reference Code <span className="required">*</span>
           </label>
-          <input
-            id="batchCode"
-            type="text"
-            value={batchCode}
-            onChange={(e) => setBatchCode(e.target.value)}
-            disabled={submitting}
-            required
-          />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              id="batchCode"
+              type="text"
+              value={batchCode}
+              onChange={(e) => setBatchCode(e.target.value)}
+              disabled={submitting}
+              placeholder="e.g. BATCH-2026-001"
+              required
+            />
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setBatchCode(generateRandomBatchCode())}
+              title="Generate new code"
+            >
+              🔄 Auto
+            </button>
+          </div>
         </div>
 
         <div className="field">
           <label htmlFor="collectionDate">
-            Collection date <span className="required">*</span>
+            Collection Date <span className="required">*</span>
           </label>
           <input
             id="collectionDate"
@@ -143,13 +179,14 @@ export default function MilkBatchFormPage() {
 
         <div className="field">
           <label htmlFor="quantityLitres">
-            Quantity (litres) <span className="required">*</span>
+            Milk Quantity (Litres) <span className="required">*</span>
           </label>
           <input
             id="quantityLitres"
             type="number"
             min="0.01"
-            step="0.01"
+            step="0.1"
+            placeholder="e.g. 250"
             value={quantityLitres}
             onChange={(e) => setQuantityLitres(e.target.value)}
             disabled={submitting}
@@ -158,16 +195,28 @@ export default function MilkBatchFormPage() {
         </div>
 
         <div className="field">
-          <label>
-            Animals <span className="required">*</span>
-          </label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <label style={{ margin: 0 }}>
+              Select Cows / Animals Included <span className="required">*</span>
+            </label>
+            {livestock.length > 0 && (
+              <button
+                type="button"
+                className="btn btn--ghost"
+                style={{ padding: '2px 10px', fontSize: '0.8rem' }}
+                onClick={selectAllAnimals}
+              >
+                {selectedIds.length === livestock.length ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+          </div>
 
-          {livestockLoading && <p>Loading animals…</p>}
+          {livestockLoading && <p>Loading farm livestock…</p>}
           {!livestockLoading && livestockError && <p className="card__note">{livestockError}</p>}
           {!livestockLoading && !livestockError && livestock.length === 0 && (
             <p className="field-note">
-              No livestock registered yet.{' '}
-              <Link to="/livestock/new">Add an animal</Link> first.
+              No cows registered yet.{' '}
+              <Link to="/livestock/new">Click here to add your first cow</Link>.
             </p>
           )}
           {!livestockLoading && !livestockError && livestock.length > 0 && (
@@ -181,7 +230,7 @@ export default function MilkBatchFormPage() {
                     disabled={submitting}
                   />
                   <span>
-                    {animal.tagNumber} — {animal.species}
+                    <strong>🐄 {animal.tagNumber}</strong> ({animal.species})
                   </span>
                   <StatusBadge tone={STATUS_TONES[animal.status] ?? 'neutral'}>
                     {animal.status}
@@ -197,7 +246,7 @@ export default function MilkBatchFormPage() {
             Cancel
           </Link>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            {submitting ? 'Creating…' : 'Create Milk Batch'}
+            {submitting ? 'Saving Batch…' : '🥛 Save Milk Batch'}
           </button>
         </div>
       </form>

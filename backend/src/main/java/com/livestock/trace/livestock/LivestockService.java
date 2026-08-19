@@ -1,5 +1,6 @@
 package com.livestock.trace.livestock;
 
+import com.livestock.trace.common.SequenceGeneratorService;
 import com.livestock.trace.common.exception.BusinessRuleException;
 import com.livestock.trace.common.exception.ResourceNotFoundException;
 import com.livestock.trace.farm.Farm;
@@ -11,7 +12,6 @@ import com.livestock.trace.security.AuthenticatedUser;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +19,7 @@ public class LivestockService {
 
     private final LivestockRepository livestockRepository;
     private final FarmService farmService;
+    private final SequenceGeneratorService sequenceGeneratorService;
 
     public Livestock getById(Long id) {
         return livestockRepository
@@ -26,17 +27,14 @@ public class LivestockService {
                 .orElseThrow(() -> new ResourceNotFoundException("Livestock not found: " + id));
     }
 
-    @Transactional(readOnly = true)
     public LivestockResponse getResponseById(Long id) {
         return LivestockResponse.from(getById(id));
     }
 
-    @Transactional(readOnly = true)
     public List<LivestockResponse> getResponsesByFarm(Long farmId) {
         return livestockRepository.findByFarmId(farmId).stream().map(LivestockResponse::from).toList();
     }
 
-    @Transactional
     public LivestockResponse createLivestock(LivestockCreateRequest request, AuthenticatedUser currentUser) {
         Farm farm = farmService.getById(request.farmId());
         farmService.requireOwnership(farm, currentUser);
@@ -56,10 +54,10 @@ public class LivestockService {
                         .dateOfBirth(request.dateOfBirth())
                         .farm(farm)
                         .build();
+        livestock.setId(sequenceGeneratorService.generateSequence(Livestock.class.getSimpleName()));
         return LivestockResponse.from(livestockRepository.save(livestock));
     }
 
-    @Transactional
     public LivestockResponse updateLivestock(
             Long id, LivestockUpdateRequest request, AuthenticatedUser currentUser) {
         Livestock livestock = getById(id);

@@ -1,5 +1,6 @@
 package com.livestock.trace.milk;
 
+import com.livestock.trace.common.SequenceGeneratorService;
 import com.livestock.trace.common.exception.BusinessRuleException;
 import com.livestock.trace.common.exception.ResourceNotFoundException;
 import com.livestock.trace.farm.Farm;
@@ -17,7 +18,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class MilkBatchService {
     private final LivestockService livestockService;
     private final UserService userService;
     private final TreatmentService treatmentService;
+    private final SequenceGeneratorService sequenceGeneratorService;
 
     public MilkBatch getById(Long id) {
         return milkBatchRepository
@@ -35,28 +36,19 @@ public class MilkBatchService {
                 .orElseThrow(() -> new ResourceNotFoundException("MilkBatch not found: " + id));
     }
 
-    @Transactional(readOnly = true)
     public MilkBatchResponse getResponseById(Long id) {
         return MilkBatchResponse.from(getById(id));
     }
 
-    @Transactional(readOnly = true)
     public List<MilkBatchResponse> getResponsesByFarm(Long farmId) {
         return milkBatchRepository.findByFarmId(farmId).stream().map(MilkBatchResponse::from).toList();
     }
 
-    // Resolves the batch's lazy farm/owner association and checks ownership, all within this
-    // method's own transaction. Called from other services (e.g. QrCodeService) precisely so that
-    // it runs as its own self-contained transaction via the Spring proxy, rather than being folded
-    // into a caller's longer-lived transaction — see QrCodeService.generateForMilkBatch for why
-    // that distinction matters for the create/recover race path.
-    @Transactional(readOnly = true)
     public void requireOwnershipOfMilkBatch(Long milkBatchId, AuthenticatedUser currentUser) {
         MilkBatch milkBatch = getById(milkBatchId);
         farmService.requireOwnership(milkBatch.getFarm(), currentUser);
     }
 
-    @Transactional
     public MilkBatchResponse createMilkBatch(MilkBatchCreateRequest request, AuthenticatedUser currentUser) {
         Farm farm = farmService.getById(request.farmId());
         farmService.requireOwnership(farm, currentUser);
@@ -104,6 +96,7 @@ public class MilkBatchService {
                         .quantityLitres(request.quantityLitres())
                         .livestock(livestock)
                         .build();
+        milkBatch.setId(sequenceGeneratorService.generateSequence(MilkBatch.class.getSimpleName()));
         return MilkBatchResponse.from(milkBatchRepository.save(milkBatch));
     }
 }

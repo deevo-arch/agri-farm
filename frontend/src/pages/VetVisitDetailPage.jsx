@@ -6,7 +6,12 @@ import {
   getVetVisitById,
   rejectVetVisit,
 } from '../api/vetVisitApi'
-import { createMedication, createVaccination } from '../api/treatmentApi'
+import {
+  createMedication,
+  createVaccination,
+  getMedicationsByLivestock,
+  getVaccinationsByLivestock,
+} from '../api/treatmentApi'
 import { getErrorStatus, resolveErrorMessage } from '../api/errors'
 import { useAuth } from '../auth/useAuth'
 import EmptyState from '../components/EmptyState'
@@ -224,160 +229,273 @@ export default function VetVisitDetailPage() {
 }
 
 function RecordTreatmentForm({ livestockId, vetVisitId }) {
-  const [treatmentType, setTreatmentType] = useState('VACCINATION')
-  const [name, setName] = useState('')
-  const [dosage, setDosage] = useState('')
-  const [administeredDate, setAdministeredDate] = useState('')
-  const [withdrawalEndDate, setWithdrawalEndDate] = useState('')
-  const [formError, setFormError] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  // Vaccination Form State
+  const [vacName, setVacName] = useState('')
+  const [vacAdminDate, setVacAdminDate] = useState('')
+  const [vacWithdrawDate, setVacWithdrawDate] = useState('')
+  const [vacError, setVacError] = useState('')
+  const [vacSuccess, setVacSuccess] = useState('')
+  const [vacSubmitting, setVacSubmitting] = useState(false)
 
-  function resetForm() {
-    setName('')
-    setDosage('')
-    setAdministeredDate('')
-    setWithdrawalEndDate('')
-  }
+  // Medication Form State
+  const [medName, setMedName] = useState('')
+  const [medDosage, setMedDosage] = useState('')
+  const [medAdminDate, setMedAdminDate] = useState('')
+  const [medWithdrawDate, setMedWithdrawDate] = useState('')
+  const [medError, setMedError] = useState('')
+  const [medSuccess, setMedSuccess] = useState('')
+  const [medSubmitting, setMedSubmitting] = useState(false)
 
-  async function handleSubmit(event) {
+  const [existingVaccines, setExistingVaccines] = useState([])
+  const [existingMeds, setExistingMeds] = useState([])
+
+  const loadTreatments = useCallback(() => {
+    if (!livestockId) return
+    Promise.all([
+      getVaccinationsByLivestock(livestockId),
+      getMedicationsByLivestock(livestockId),
+    ])
+      .then(([vacs, meds]) => {
+        setExistingVaccines(vacs)
+        setExistingMeds(meds)
+      })
+      .catch(() => {})
+  }, [livestockId])
+
+  useEffect(() => {
+    loadTreatments()
+  }, [loadTreatments])
+
+  async function handleVacSubmit(event) {
     event.preventDefault()
-    if (!name.trim() || !administeredDate || !withdrawalEndDate) {
-      setFormError('Please fill in name, administered date, and withdrawal end date.')
+    setVacError('')
+    setVacSuccess('')
+
+    if (!vacName.trim() || !vacAdminDate || !vacWithdrawDate) {
+      setVacError('Please fill in vaccine name, administered date, and withdrawal end date.')
       return
     }
 
-    setFormError('')
-    setSuccessMessage('')
-    setSubmitting(true)
+    setVacSubmitting(true)
     try {
-      if (treatmentType === 'VACCINATION') {
-        await createVaccination({
-          livestockId,
-          vetVisitId,
-          vaccineName: name.trim(),
-          administeredDate,
-          withdrawalEndDate,
-        })
-      } else {
-        await createMedication({
-          livestockId,
-          vetVisitId,
-          medicationName: name.trim(),
-          dosage: dosage.trim() || null,
-          administeredDate,
-          withdrawalEndDate,
-        })
-      }
-      setSuccessMessage(`${treatmentType === 'VACCINATION' ? 'Vaccination' : 'Medication'} recorded successfully.`)
-      resetForm()
+      await createVaccination({
+        livestockId,
+        vetVisitId,
+        vaccineName: vacName.trim(),
+        administeredDate: vacAdminDate,
+        withdrawalEndDate: vacWithdrawDate,
+      })
+      setVacSuccess('Vaccination recorded successfully.')
+      setVacName('')
+      setVacAdminDate('')
+      setVacWithdrawDate('')
+      loadTreatments()
     } catch (err) {
-      setFormError(resolveErrorMessage(err))
+      setVacError(resolveErrorMessage(err))
     } finally {
-      setSubmitting(false)
+      setVacSubmitting(false)
+    }
+  }
+
+  async function handleMedSubmit(event) {
+    event.preventDefault()
+    setMedError('')
+    setMedSuccess('')
+
+    if (!medName.trim() || !medAdminDate || !medWithdrawDate) {
+      setMedError('Please fill in medication name, administered date, and withdrawal end date.')
+      return
+    }
+
+    setMedSubmitting(true)
+    try {
+      await createMedication({
+        livestockId,
+        vetVisitId,
+        medicationName: medName.trim(),
+        dosage: medDosage.trim() || null,
+        administeredDate: medAdminDate,
+        withdrawalEndDate: medWithdrawDate,
+      })
+      setMedSuccess('Medication recorded successfully.')
+      setMedName('')
+      setMedDosage('')
+      setMedAdminDate('')
+      setMedWithdrawDate('')
+      loadTreatments()
+    } catch (err) {
+      setMedError(resolveErrorMessage(err))
+    } finally {
+      setMedSubmitting(false)
     }
   }
 
   return (
-    <div className="card">
-      <h2>Record Treatment</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* CARD 1: VACCINATION FORM */}
+      <div className="card">
+        <h2>💉 Record Vaccination</h2>
+        {vacSuccess && <div className="alert alert--success" role="status">{vacSuccess}</div>}
+        {vacError && <div className="alert alert--danger" role="alert">{vacError}</div>}
 
-      {successMessage && (
-        <div className="alert alert--success" role="status">
-          {successMessage}
-        </div>
-      )}
-      {formError && (
-        <div className="alert alert--danger" role="alert">
-          {formError}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="field">
-          <label htmlFor="treatmentType">Treatment Type</label>
-          <div className="radio-group">
-            <label>
-              <input
-                type="radio"
-                name="treatmentType"
-                value="VACCINATION"
-                checked={treatmentType === 'VACCINATION'}
-                onChange={() => setTreatmentType('VACCINATION')}
-                disabled={submitting}
-              />
-              Vaccination
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="treatmentType"
-                value="MEDICATION"
-                checked={treatmentType === 'MEDICATION'}
-                onChange={() => setTreatmentType('MEDICATION')}
-                disabled={submitting}
-              />
-              Medication
-            </label>
-          </div>
-        </div>
-
-        <div className="field">
-          <label htmlFor="treatmentName">
-            {treatmentType === 'VACCINATION' ? 'Vaccine name' : 'Medication name'}{' '}
-            <span className="required">*</span>
-          </label>
-          <input
-            id="treatmentName"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={submitting}
-            required
-          />
-        </div>
-
-        {treatmentType === 'MEDICATION' && (
+        <form onSubmit={handleVacSubmit} noValidate>
           <div className="field">
-            <label htmlFor="dosage">Dosage</label>
-            <input id="dosage" type="text" value={dosage} onChange={(e) => setDosage(e.target.value)} disabled={submitting} />
+            <label htmlFor="vacName">
+              Vaccine name <span className="required">*</span>
+            </label>
+            <input
+              id="vacName"
+              type="text"
+              value={vacName}
+              onChange={(e) => setVacName(e.target.value)}
+              disabled={vacSubmitting}
+              placeholder="e.g. FMD Vaccine"
+              required
+            />
           </div>
-        )}
 
-        <div className="field">
-          <label htmlFor="administeredDate">
-            Administered date <span className="required">*</span>
-          </label>
-          <input
-            id="administeredDate"
-            type="date"
-            value={administeredDate}
-            onChange={(e) => setAdministeredDate(e.target.value)}
-            disabled={submitting}
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="vacAdminDate">
+              Administered date <span className="required">*</span>
+            </label>
+            <input
+              id="vacAdminDate"
+              type="date"
+              value={vacAdminDate}
+              onChange={(e) => setVacAdminDate(e.target.value)}
+              disabled={vacSubmitting}
+              required
+            />
+          </div>
 
-        <div className="field">
-          <label htmlFor="withdrawalEndDate">
-            Withdrawal end date <span className="required">*</span>
-          </label>
-          <input
-            id="withdrawalEndDate"
-            type="date"
-            value={withdrawalEndDate}
-            onChange={(e) => setWithdrawalEndDate(e.target.value)}
-            disabled={submitting}
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="vacWithdrawDate">
+              Withdrawal end date <span className="required">*</span>
+            </label>
+            <input
+              id="vacWithdrawDate"
+              type="date"
+              value={vacWithdrawDate}
+              onChange={(e) => setVacWithdrawDate(e.target.value)}
+              disabled={vacSubmitting}
+              required
+            />
+          </div>
 
-        <div className="form-actions">
-          <button type="submit" className="btn btn--primary" disabled={submitting}>
-            {submitting ? 'Saving…' : 'Save Treatment'}
-          </button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn--primary" disabled={vacSubmitting}>
+              {vacSubmitting ? 'Saving…' : 'Save Vaccination'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* CARD 2: MEDICATION FORM */}
+      <div className="card">
+        <h2>💊 Record Medication</h2>
+        {medSuccess && <div className="alert alert--success" role="status">{medSuccess}</div>}
+        {medError && <div className="alert alert--danger" role="alert">{medError}</div>}
+
+        <form onSubmit={handleMedSubmit} noValidate>
+          <div className="field">
+            <label htmlFor="medName">
+              Medication name <span className="required">*</span>
+            </label>
+            <input
+              id="medName"
+              type="text"
+              value={medName}
+              onChange={(e) => setMedName(e.target.value)}
+              disabled={medSubmitting}
+              placeholder="e.g. Amoxicillin Antibiotic"
+              required
+            />
+          </div>
+
+          <div className="field">
+            <label htmlFor="medDosage">Dosage</label>
+            <input
+              id="medDosage"
+              type="text"
+              value={medDosage}
+              onChange={(e) => setMedDosage(e.target.value)}
+              placeholder="e.g. 10ml"
+              disabled={medSubmitting}
+            />
+          </div>
+
+          <div className="field">
+            <label htmlFor="medAdminDate">
+              Administered date <span className="required">*</span>
+            </label>
+            <input
+              id="medAdminDate"
+              type="date"
+              value={medAdminDate}
+              onChange={(e) => setMedAdminDate(e.target.value)}
+              disabled={medSubmitting}
+              required
+            />
+          </div>
+
+          <div className="field">
+            <label htmlFor="medWithdrawDate">
+              Withdrawal end date <span className="required">*</span>
+            </label>
+            <input
+              id="medWithdrawDate"
+              type="date"
+              value={medWithdrawDate}
+              onChange={(e) => setMedWithdrawDate(e.target.value)}
+              disabled={medSubmitting}
+              required
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn--primary" disabled={medSubmitting}>
+              {medSubmitting ? 'Saving…' : 'Save Medication'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* CARD 3: RECORDED TREATMENTS LIST */}
+      {(existingVaccines.length > 0 || existingMeds.length > 0) && (
+        <div className="card">
+          <h2>📋 Recorded Treatments for this Animal</h2>
+
+          {existingVaccines.length > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1rem', color: '#166534', marginBottom: '0.5rem' }}>
+                💉 Vaccinations ({existingVaccines.length}):
+              </h3>
+              <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+                {existingVaccines.map((v) => (
+                  <li key={v.id} style={{ marginBottom: '0.25rem' }}>
+                    <strong>{v.vaccineName}</strong> — Administered: {v.administeredDate} | Withdrawal Until: {v.withdrawalEndDate}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {existingMeds.length > 0 && (
+            <div>
+              <h3 style={{ fontSize: '1rem', color: '#1e40af', marginBottom: '0.5rem' }}>
+                💊 Medications ({existingMeds.length}):
+              </h3>
+              <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+                {existingMeds.map((m) => (
+                  <li key={m.id} style={{ marginBottom: '0.25rem' }}>
+                    <strong>{m.medicationName}</strong> {m.dosage ? `(${m.dosage})` : ''} — Administered: {m.administeredDate} | Withdrawal Until: {m.withdrawalEndDate}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      </form>
+      )}
     </div>
   )
 }

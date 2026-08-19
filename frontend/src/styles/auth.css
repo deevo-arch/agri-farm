@@ -3,66 +3,88 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: radial-gradient(circle at top, var(--color-primary-tint), var(--color-bg) 55%);
+  padding: 32px 20px;
+  background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.14) 0%, rgba(248, 250, 252, 1) 70%);
+  position: relative;
 }
 
-.auth-card {
+/* Clean Farmer-Friendly Card */
+.auth-card-clean {
   width: 100%;
-  max-width: 400px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  max-width: 440px;
+  background: #ffffff;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: 32px;
+  box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--color-border);
+  padding: 40px 36px;
   text-align: center;
 }
-.auth-card__brand {
+
+.auth-card-clean__brand {
   display: flex;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
-.auth-card__tagline {
+.auth-card-clean__brand .logo__wordmark {
+  font-size: 1.65rem;
+}
+
+.auth-card-clean__tagline {
   font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
   margin-bottom: 24px;
 }
-.auth-card h1 {
-  font-size: 1.4rem;
-  margin-bottom: 20px;
-}
-.auth-card form {
-  text-align: left;
-}
-.auth-card__footer {
-  margin-top: 20px;
-  font-size: 0.9rem;
+
+.auth-card-clean h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 24px;
+  letter-spacing: -0.03em;
 }
 
-.public-trace {
-  min-height: 100vh;
+.auth-card-clean form {
+  text-align: left;
+}
+
+/* Input Fields with Icons */
+.input-with-icon {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: var(--color-bg);
 }
-.public-trace__card {
-  max-width: 440px;
-  width: 100%;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: 32px;
-  text-align: center;
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 1.1rem;
+  pointer-events: none;
+  opacity: 0.7;
 }
-.public-trace__token {
-  margin-top: 16px;
-  font-size: 0.85rem;
+
+.input-with-icon input {
+  padding-left: 46px !important;
+  height: 48px;
+  font-size: 1rem !important;
+  border-radius: var(--radius-md);
 }
-.public-trace__token code {
-  background: var(--color-primary-tint);
-  padding: 2px 8px;
-  border-radius: 6px;
-  color: var(--color-primary-dark);
+
+.btn--lg {
+  height: 48px;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.auth-card-clean__footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.925rem;
+  color: var(--color-text-muted);
+}
+.auth-card-clean__footer p {
+  margin: 0;
+  font-weight: 500;
 }

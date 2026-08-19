@@ -1,9 +1,9 @@
 package com.livestock.trace.qr;
 
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface QrCodeRepository extends JpaRepository<QrCode, Long> {
+public interface QrCodeRepository extends MongoRepository<QrCode, Long> {
 
     Optional<QrCode> findByToken(String token);
 

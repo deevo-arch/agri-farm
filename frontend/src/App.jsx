@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react'
 import ProtectedRoute from './auth/ProtectedRoute'
 import { useAuth } from './auth/useAuth'
 import AuthenticatedLayout from './components/AuthenticatedLayout'
@@ -6,6 +6,7 @@ import AdminCreateUserPage from './pages/AdminCreateUserPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminUserEditPage from './pages/AdminUserEditPage'
 import AdminUsersPage from './pages/AdminUsersPage'
+import AnalyticsPage from './pages/AnalyticsPage'
 import DashboardPage from './pages/DashboardPage'
 import FarmEditPage from './pages/FarmEditPage'
 import FarmFormPage from './pages/FarmFormPage'
@@ -19,11 +20,13 @@ import MilkBatchDetailPage from './pages/MilkBatchDetailPage'
 import MilkBatchFormPage from './pages/MilkBatchFormPage'
 import MilkBatchListPage from './pages/MilkBatchListPage'
 import MilkBatchQrPage from './pages/MilkBatchQrPage'
+import MilkQualityPage from './pages/MilkQualityPage'
 import ProfilePage from './pages/ProfilePage'
 import PublicTracePage from './pages/PublicTracePage'
 import QrCodesPage from './pages/QrCodesPage'
 import RegisterPage from './pages/RegisterPage'
 import RequestVetVisitPage from './pages/RequestVetVisitPage'
+import TraceabilityTimelinePage from './pages/TraceabilityTimelinePage'
 import TreatmentsPage from './pages/TreatmentsPage'
 import VetDashboardPage from './pages/VetDashboardPage'
 import VetVisitDetailPage from './pages/VetVisitDetailPage'
@@ -72,7 +75,10 @@ export default function App() {
           <Route path="/milk-batches/new" element={<MilkBatchFormPage />} />
           <Route path="/milk-batches/:id/qr" element={<MilkBatchQrPage />} />
           <Route path="/milk-batches/:id" element={<MilkBatchDetailPage />} />
+          <Route path="/milk-quality" element={<MilkQualityPage />} />
           <Route path="/qr-codes" element={<QrCodesPage />} />
+          <Route path="/traceability" element={<TraceabilityTimelinePage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/vet-visits" element={<VetVisitsPage />} />
           <Route path="/vet-visits/:id" element={<VetVisitDetailPage />} />
           <Route path="/vet-visits/:id/edit" element={<VetVisitEditPage />} />

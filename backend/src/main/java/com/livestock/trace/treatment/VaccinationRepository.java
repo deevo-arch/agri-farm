@@ -2,9 +2,9 @@ package com.livestock.trace.treatment;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface VaccinationRepository extends JpaRepository<Vaccination, Long> {
+public interface VaccinationRepository extends MongoRepository<Vaccination, Long> {
 
     List<Vaccination> findByLivestockId(Long livestockId);
 

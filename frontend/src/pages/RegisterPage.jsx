@@ -6,8 +6,8 @@ import Logo from '../components/Logo'
 
 function validate({ fullName, email, password, confirmPassword }) {
   if (!fullName.trim()) return 'Please enter your full name.'
-  if (!email.trim()) return 'Please enter your email.'
-  if (password.length < 6) return 'Password must be at least 6 characters.'
+  if (!email.trim()) return 'Please enter your email address.'
+  if (password.length < 6) return 'Password must be at least 6 characters long.'
   if (password !== confirmPassword) return 'Passwords do not match.'
   return ''
 }
@@ -44,30 +44,22 @@ export default function RegisterPage() {
     }
   }
 
-  if (success) {
-    return (
-      <div className="auth-page">
-        <div className="auth-card">
-          <div className="auth-card__brand">
-            <Logo />
-          </div>
-          <div className="alert alert--success" role="status">
-            Account created. Redirecting to sign in…
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-card__brand">
-          <Logo />
+      <div className="auth-card-clean">
+        <div className="auth-card-clean__brand">
+          <Logo size={44} />
         </div>
-        <p className="auth-card__tagline">Join as a farmer to start tracing your milk.</p>
+        
+        <p className="auth-card-clean__tagline">🌾 Join AgriTrust as a Farmer</p>
 
-        <h1>Create your account</h1>
+        <h2>Create Your Account</h2>
+
+        {success && (
+          <div className="alert alert--success" role="status">
+            ✅ Account created successfully! Redirecting to sign in…
+          </div>
+        )}
 
         {error && (
           <div className="alert alert--danger" role="alert">
@@ -75,74 +67,90 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="fullName">Full name</label>
-            <input
-              id="fullName"
-              type="text"
-              autoComplete="name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={submitting}
-              required
-            />
-          </div>
+        {!success && (
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="fullName">Full Name</label>
+              <div className="input-with-icon">
+                <span className="input-icon">👤</span>
+                <input
+                  id="fullName"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={submitting}
+                  required
+                />
+              </div>
+            </div>
 
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={submitting}
-              required
-            />
-          </div>
+            <div className="field">
+              <label htmlFor="email">Email Address</label>
+              <div className="input-with-icon">
+                <span className="input-icon">✉️</span>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={submitting}
+                  required
+                />
+              </div>
+            </div>
 
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={submitting}
-              minLength={6}
-              required
-            />
-          </div>
+            <div className="field">
+              <label htmlFor="password">Password (at least 6 characters)</label>
+              <div className="input-with-icon">
+                <span className="input-icon">🔒</span>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={submitting}
+                  minLength={6}
+                  required
+                />
+              </div>
+            </div>
 
-          <div className="field">
-            <label htmlFor="confirmPassword">Confirm password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={submitting}
-              minLength={6}
-              required
-            />
-          </div>
+            <div className="field">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <div className="input-with-icon">
+                <span className="input-icon">🔑</span>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Re-enter your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={submitting}
+                  minLength={6}
+                  required
+                />
+              </div>
+            </div>
 
-          <p className="field-note">
-            New accounts are created as <strong>Farmer</strong> accounts. Vet and admin access is
-            granted separately.
-          </p>
+            <button type="submit" className="btn btn--primary btn--block btn--lg" disabled={submitting}>
+              {submitting ? 'Creating Account…' : 'Register Account'}
+            </button>
+          </form>
+        )}
 
-          <button type="submit" className="btn btn--primary btn--block" disabled={submitting}>
-            {submitting ? 'Creating account…' : 'Create account'}
-          </button>
-        </form>
-
-        <p className="auth-card__footer">
-          Already have an account? <Link to="/login">Sign in</Link>
-        </p>
+        <div className="auth-card-clean__footer">
+          <p>Already have an account?</p>
+          <Link to="/login" className="btn btn--ghost btn--block" style={{ marginTop: '8px' }}>
+            Sign In Instead
+          </Link>
+        </div>
       </div>
     </div>
   )

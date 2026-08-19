@@ -5,6 +5,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.livestock.trace.common.SequenceGeneratorService;
 import com.livestock.trace.milk.MilkBatch;
 import com.livestock.trace.milk.MilkBatchService;
 import com.livestock.trace.qr.dto.QrCodeResponse;
@@ -14,9 +15,8 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class QrCodeService {
@@ -26,32 +26,25 @@ public class QrCodeService {
 
     private final QrCodeRepository qrCodeRepository;
     private final MilkBatchService milkBatchService;
+    private final SequenceGeneratorService sequenceGeneratorService;
     private final String traceBaseUrl;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public QrCodeService(
             QrCodeRepository qrCodeRepository,
             MilkBatchService milkBatchService,
+            SequenceGeneratorService sequenceGeneratorService,
             @Value("${app.public.trace-base-url}") String traceBaseUrl) {
         this.qrCodeRepository = qrCodeRepository;
         this.milkBatchService = milkBatchService;
+        this.sequenceGeneratorService = sequenceGeneratorService;
         this.traceBaseUrl = traceBaseUrl;
     }
 
-    @Transactional(readOnly = true)
     public boolean existsForMilkBatch(Long milkBatchId) {
         return qrCodeRepository.findByMilkBatchId(milkBatchId).isPresent();
     }
 
-    // Deliberately NOT @Transactional at this level: the ownership check (below) and the
-    // create-or-recover logic (in createQrCode) must each run in their own separate transaction.
-    // milkBatchService.requireOwnershipOfMilkBatch is a cross-bean call, so Spring's proxy gives it
-    // a fresh transaction to resolve MilkBatch.farm/Farm.owner (lazy, open-in-view is disabled).
-    // If this method itself were @Transactional, that transaction would also wrap createQrCode's
-    // saveAndFlush — and when two near-simultaneous requests race on the unique constraint, the
-    // loser's recovery query would run on the same now-poisoned session as the failed insert
-    // (Hibernate: "don't flush the Session after an exception occurs"), instead of the fresh
-    // session it actually needs.
     public QrCodeResponse generateForMilkBatch(Long milkBatchId, AuthenticatedUser currentUser) {
         milkBatchService.requireOwnershipOfMilkBatch(milkBatchId, currentUser);
 
@@ -61,16 +54,14 @@ public class QrCodeService {
                 .orElseGet(() -> createQrCode(milkBatchId));
     }
 
-    // Two near-simultaneous requests can both pass the findByMilkBatchId check; the loser recovers
-    // from the unique-constraint violation by re-fetching what the winner just created.
     private QrCodeResponse createQrCode(Long milkBatchId) {
         MilkBatch milkBatch = milkBatchService.getById(milkBatchId);
         try {
-            QrCode created =
-                    qrCodeRepository.saveAndFlush(
-                            QrCode.builder().token(generateUniqueToken()).milkBatch(milkBatch).build());
+            QrCode qrCode = QrCode.builder().token(generateUniqueToken()).milkBatch(milkBatch).build();
+            qrCode.setId(sequenceGeneratorService.generateSequence(QrCode.class.getSimpleName()));
+            QrCode created = qrCodeRepository.save(qrCode);
             return buildResponse(created);
-        } catch (DataIntegrityViolationException ex) {
+        } catch (DuplicateKeyException ex) {
             return qrCodeRepository
                     .findByMilkBatchId(milkBatchId)
                     .map(this::buildResponse)
