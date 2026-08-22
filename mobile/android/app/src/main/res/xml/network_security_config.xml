@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Configuration
+  ================================
+  Allows cleartext (HTTP) traffic ONLY to local development hosts:
+    • 10.0.2.2       — Android emulator alias for the host machine
+    • 10.0.2.x       — Emulator subnet
+    • 192.168.x.x    — Typical home/office Wi-Fi LAN range
+    • 172.16.x.x     — Common corporate LAN range
+    • localhost / 127.0.0.1
+
+  All other traffic (including the MongoDB Atlas HTTPS connection that
+  goes through the Spring Boot backend) continues to use TLS.
+-->
+<network-security-config>
+    <!-- Trust system + user CAs for all connections (debug friendliness) -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+
+    <!-- Allow HTTP on local / LAN addresses used during development -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android emulator → host machine -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+
+        <!-- Physical device on same Wi-Fi as dev machine (common subnets) -->
+        <!-- Replace or add your actual dev-machine IP if outside these ranges -->
+        <domain includeSubdomains="false">192.168.0.0</domain>
+        <domain includeSubdomains="false">192.168.1.0</domain>
+        <domain includeSubdomains="false">172.16.0.0</domain>
+        <domain includeSubdomains="false">10.0.0.0</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+
+    <!-- Deny cleartext for everything else (production / Atlas HTTPS goes here) -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

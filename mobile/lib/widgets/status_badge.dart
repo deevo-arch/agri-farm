@@ -7,22 +7,41 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSuccess = status == 'ACTIVE' || status == 'COMPLETED' || status == 'SAFE';
+    final tone = _toneFor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isSuccess ? Colors.green.withAlpha(40) : Colors.orange.withAlpha(40),
+        color: tone.withAlpha(40),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isSuccess ? Colors.green : Colors.orange),
+        border: Border.all(color: tone),
       ),
       child: Text(
         status,
         style: TextStyle(
-          color: isSuccess ? Colors.green : Colors.orange,
+          color: tone,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),
       ),
     );
+  }
+
+  Color _toneFor(String raw) {
+    switch (raw.toUpperCase()) {
+      case 'ACTIVE':
+      case 'COMPLETED':
+      case 'SAFE':
+      case 'ACCEPTED':
+      case 'VERIFIED':
+        return Colors.green;
+      case 'REJECTED':
+      case 'DECEASED':
+      case 'UNSAFE':
+        return Colors.redAccent;
+      case 'SOLD':
+        return const Color(0xFF9CA3AF);
+      default:
+        return const Color(0xFFF59E0B);
+    }
   }
 }

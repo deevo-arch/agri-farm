@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
+import '../../api/auth_api.dart';
+import '../../core/api_exception.dart';
+import '../../core/app_routes.dart';
 import '../../widgets/custom_button.dart';
-import '../farmer/farmer_dashboard.dart';
-import '../vet/vet_dashboard.dart';
 import '../consumer/verification.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,25 +34,26 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await ApiService.login(
+      final session = await AuthApi.login(
         _emailController.text.trim(),
         _passwordController.text,
       );
+      final user = session.toUser();
 
       if (!mounted) return;
 
-      if (user?.role == 'VET') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => VetDashboard(user: user!)),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => FarmerDashboard(user: user!)),
-        );
-      }
-    } catch (e) {
+      final route = AppRoutes.dashboardForRole(user.role);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        route,
+        (_) => false,
+        arguments: user,
+      );
+    } on ApiException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+      });
+    } catch (_) {
       setState(() {
         _errorMessage = 'Invalid email or password';
       });

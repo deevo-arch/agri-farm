@@ -2,11 +2,19 @@ package com.livestock.trace.bootstrap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.livestock.trace.common.SequenceGeneratorService;
+import com.livestock.trace.farm.FarmRepository;
+import com.livestock.trace.livestock.LivestockRepository;
+import com.livestock.trace.milk.MilkBatchRepository;
+import com.livestock.trace.qr.QrCodeRepository;
+import com.livestock.trace.treatment.MedicationRepository;
+import com.livestock.trace.treatment.VaccinationRepository;
 import com.livestock.trace.user.Role;
 import com.livestock.trace.user.User;
 import com.livestock.trace.user.UserRepository;
 import com.livestock.trace.user.UserService;
 import com.livestock.trace.user.dto.UserCreateRequest;
+import com.livestock.trace.vet.VetVisitRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +33,14 @@ class AdminBootstrapServiceTest {
     @Autowired private UserRepository userRepository;
     @Autowired private UserService userService;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private FarmRepository farmRepository;
+    @Autowired private LivestockRepository livestockRepository;
+    @Autowired private VetVisitRepository vetVisitRepository;
+    @Autowired private VaccinationRepository vaccinationRepository;
+    @Autowired private MedicationRepository medicationRepository;
+    @Autowired private MilkBatchRepository milkBatchRepository;
+    @Autowired private QrCodeRepository qrCodeRepository;
+    @Autowired private SequenceGeneratorService sequenceGeneratorService;
 
     private String uniqueEmail(String prefix) {
         return prefix + "-" + System.nanoTime() + "@test.local";
@@ -38,13 +54,22 @@ class AdminBootstrapServiceTest {
                 .forEach(userRepository::delete);
     }
 
+    private AdminBootstrapService createService(boolean enabled, String email, String password, String fullName) {
+        return new AdminBootstrapService(
+                userRepository, userService,
+                farmRepository, livestockRepository,
+                vetVisitRepository, vaccinationRepository,
+                medicationRepository, milkBatchRepository,
+                qrCodeRepository, sequenceGeneratorService,
+                enabled, email, password, fullName);
+    }
+
     @Test
     void bootstrap_createsAdmin_whenEnabledAndNoAdminExists() {
         clearExistingAdmins();
 
         String email = uniqueEmail("bootstrap-admin");
-        AdminBootstrapService service =
-                new AdminBootstrapService(userRepository, userService, true, email, "bootstrapPass1", "Bootstrap Admin");
+        AdminBootstrapService service = createService(true, email, "bootstrapPass1", "Bootstrap Admin");
 
         service.bootstrapAdminIfNeeded();
 
@@ -58,8 +83,7 @@ class AdminBootstrapServiceTest {
                 new UserCreateRequest("Existing Admin", uniqueEmail("existing-admin"), "pass1234", Role.ADMIN));
 
         String email = uniqueEmail("should-not-be-created");
-        AdminBootstrapService service =
-                new AdminBootstrapService(userRepository, userService, true, email, "bootstrapPass1", "Bootstrap Admin");
+        AdminBootstrapService service = createService(true, email, "bootstrapPass1", "Bootstrap Admin");
 
         service.bootstrapAdminIfNeeded();
 
@@ -71,8 +95,7 @@ class AdminBootstrapServiceTest {
         clearExistingAdmins();
 
         String email = uniqueEmail("bootstrap-hash");
-        AdminBootstrapService service =
-                new AdminBootstrapService(userRepository, userService, true, email, "plainTextPass1", "Bootstrap Admin");
+        AdminBootstrapService service = createService(true, email, "plainTextPass1", "Bootstrap Admin");
 
         service.bootstrapAdminIfNeeded();
 
@@ -84,8 +107,7 @@ class AdminBootstrapServiceTest {
     @Test
     void bootstrap_doesNothing_whenDisabled() {
         String email = uniqueEmail("disabled-admin");
-        AdminBootstrapService service =
-                new AdminBootstrapService(userRepository, userService, false, email, "bootstrapPass1", "Bootstrap Admin");
+        AdminBootstrapService service = createService(false, email, "bootstrapPass1", "Bootstrap Admin");
 
         service.bootstrapAdminIfNeeded();
 
